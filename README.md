@@ -3,7 +3,7 @@
 [![R-CMD-check](https://github.com/koren6684/spliv/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/koren6684/spliv/actions/workflows/R-CMD-check.yaml)
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 
-`spliv` provides sensitivity analysis for instrumental-variables (IV) designs when exclusion may fail in structured ways. It keeps uniform Conley-style uncertainty as a baseline, adds researcher-specified direct-effect patterns for spatial or panel data, traces uncertainty over sensitivity paths, and supports confirmatory Beyond Plausibly Exogenous (BPE) designs based on a pre-specified instrument-inactive subset. The package does not discover an unrestricted direct-effect field: the pattern or BPE design must be justified by the researcher.
+`spliv` provides sensitivity analysis for instrumental-variables (IV) designs when exclusion may fail in structured ways, such as geolocated clustering or very large data panels. It keeps uniform Conley-style uncertainty as a baseline, adds researcher-specified direct-effect patterns for spatial or panel data, traces uncertainty over sensitivity paths, and supports confirmatory Beyond Plausibly Exogenous (BPE) designs based on a pre-specified instrument-inactive subset. The package does not discover an unrestricted direct-effect field: the pattern or BPE design must be justified by the researcher.
 
 ## Installation
 
