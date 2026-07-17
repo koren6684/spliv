@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+title: "spliv: Patterned Sensitivity Analysis for IV with Fixed Effects"
+message: "If you use spliv, please cite the software and the associated working paper when available."
+type: software
+authors:
+  - family-names: Koren
+    given-names: Ore
+    email: okoren@iu.edu
+version: 0.1.0
+repository-code: "https://github.com/koren6684/spliv"
+url: "https://github.com/koren6684/spliv"
+license: GPL-3.0-only
+abstract: "Patterned sensitivity analysis for instrumental-variables designs with fixed effects, sensitivity paths, tipping points, and confirmatory BPE diagnostics."
+# TODO: add a DOI if a public software or working-paper DOI is assigned.
+# TODO: add an ORCID for Ore Koren if the author confirms one.

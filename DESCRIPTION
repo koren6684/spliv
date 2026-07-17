@@ -1,0 +1,29 @@
+Package: spliv
+Type: Package
+Title: Patterned Sensitivity Analysis for IV with Fixed Effects
+Version: 0.1.0
+Authors@R: person(given = "Ore", family = "Koren", role = c("aut", "cre"), email = "okoren@iu.edu")
+Description: Patterned sensitivity analysis for instrumental-variables designs
+    with fixed effects or other residualization steps. The package provides
+    uniform Conley-style sensitivity as a baseline, researcher-specified
+    direct-effect patterns, sensitivity paths and tipping points, and optional
+    confirmatory Beyond Plausibly Exogenous diagnostics.
+License: GPL-3
+Encoding: UTF-8
+Depends: R (>= 4.1)
+Imports:
+    stats,
+    graphics,
+    fixest
+Suggests:
+    lfe,
+    testthat (>= 3.0.0),
+    ggplot2,
+    knitr,
+    rmarkdown
+Config/testthat/edition: 3
+VignetteBuilder: knitr
+URL: https://github.com/koren6684/spliv
+BugReports: https://github.com/koren6684/spliv/issues
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3

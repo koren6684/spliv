@@ -1,0 +1,17 @@
+^\.git$
+^\.github$
+^\.Rproj\.user$
+^README\.Rmd$
+^README\.html$
+^\.DS_Store$
+^Rplots\.pdf$
+^local-logs$
+^build$
+^check$
+^docs$
+^PUBLIC_API_AUDIT\.md$
+^\.gitignore$
+^\.Rbuildignore$
+^LICENSE$
+^CITATION\.cff$
+^_pkgdown\.yml$

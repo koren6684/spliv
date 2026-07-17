@@ -1,0 +1,13 @@
+.Rhistory
+.RData
+.Rproj.user/
+.Ruserdata/
+*.Rproj
+*.Rcheck/
+*.tar.gz
+Rplots.pdf
+.DS_Store
+local-logs/
+build/
+check/
+docs/
