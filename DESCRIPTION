@@ -23,7 +23,8 @@ Suggests:
     rmarkdown
 Config/testthat/edition: 3
 VignetteBuilder: knitr
-URL: https://github.com/koren6684/spliv
+URL: https://koren6684.github.io/spliv,
+    https://github.com/koren6684/spliv
 BugReports: https://github.com/koren6684/spliv/issues
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3

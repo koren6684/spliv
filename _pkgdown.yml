@@ -41,3 +41,13 @@ reference:
       - bpe_explore_subsets
       - bpe_find_subset
       - estimate_gamma_zero_first_stage
+  - title: Compatibility and legacy helpers
+    desc: >
+      Compatibility functions and lower-level helpers retained for existing
+      workflows.
+    contents:
+      - demean_fixest
+      - demean_lfe
+      - sp_prior_ltz
+      - sp_sensitivity_ltz_uniform01_as_normal
+      
