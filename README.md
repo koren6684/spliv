@@ -118,6 +118,6 @@ bpe_fit$estimates
 ## Further resources
 
 - Reproducibility repository: [koren6684/spliv-reproducibility](https://github.com/koren6684/spliv-reproducibility) (prospective URL)
-- Citation: see [`CITATION.cff`](CITATION.cff) and `citation("spliv")`
+- Citation: see [CITATION.cff](https://github.com/koren6684/spliv/blob/main/CITATION.cff) and `citation("spliv")`
 
 The public reproducibility repository contains synthetic simulation workflows and data-gated Koren (2018) and Lelkes, Sood, and Iyengar (2017) replication runners. Restricted third-party data are not redistributed.
