@@ -1,7 +1,7 @@
 Package: spliv
 Type: Package
 Title: Patterned Sensitivity Analysis for IV with Fixed Effects
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: person(given = "Ore", family = "Koren", role = c("aut", "cre"), email = "okoren@iu.edu")
 Description: Patterned sensitivity analysis for instrumental-variables designs
     with fixed effects or other residualization steps. The package provides
@@ -23,7 +23,7 @@ Suggests:
     rmarkdown
 Config/testthat/edition: 3
 VignetteBuilder: knitr
-URL: https://koren6684.github.io/spliv,
+URL: https://koren6684.github.io/spliv/,
     https://github.com/koren6684/spliv
 BugReports: https://github.com/koren6684/spliv/issues
 Roxygen: list(markdown = TRUE)

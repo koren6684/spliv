@@ -14,3 +14,4 @@
 ^LICENSE$
 ^CITATION\.cff$
 ^_pkgdown\.yml$
+^spliv-reference-manual-.*\.pdf$
