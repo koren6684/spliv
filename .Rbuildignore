@@ -6,7 +6,6 @@
 ^\.DS_Store$
 ^Rplots\.pdf$
 ^local-logs$
-^build$
 ^check$
 ^docs$
 ^PUBLIC_API_AUDIT\.md$
