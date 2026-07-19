@@ -7,7 +7,7 @@
 ## Citation
 
 Source:
-[`inst/CITATION`](https://github.com/koren6684/spliv/blob/main/inst/CITATION)
+[`inst/CITATION`](https://github.com/koren6684/spliv/blob/v0.1.1/inst/CITATION)
 
 Koren O (2026). *spliv: Patterned Sensitivity Analysis for IV with Fixed
 Effects*. R package version 0.1.1, <https://github.com/koren6684/spliv>.
