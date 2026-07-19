@@ -147,8 +147,8 @@ with a substantive rationale and transportability statement.
   [koren6684/spliv-reproducibility](https://github.com/koren6684/spliv-reproducibility)
   (prospective URL)
 - Citation: see
-  [`CITATION.cff`](https://koren6684.github.io/spliv/CITATION.cff) and
-  `citation("spliv")`
+  [CITATION.cff](https://github.com/koren6684/spliv/blob/main/CITATION.cff)
+  and `citation("spliv")`
 
 The public reproducibility repository contains synthetic simulation
 workflows and data-gated Koren (2018) and Lelkes, Sood, and Iyengar
