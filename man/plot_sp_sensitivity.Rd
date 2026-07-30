@@ -2,7 +2,6 @@
 % Please edit documentation in R/plotting.R
 \name{plot_sp_sensitivity}
 \alias{plot_sp_sensitivity}
-\alias{plot_conley_sensitivity}
 \title{Plot Patterned Sensitivity Output or a Fitted Object}
 \usage{
 plot_sp_sensitivity(
@@ -11,16 +10,9 @@ plot_sp_sensitivity(
   main = "Plausibly Exogenous IV Sensitivity",
   ...
 )
-
-plot_conley_sensitivity(
-  df_plot,
-  ylab = "Effect (beta)",
-  main = "Plausibly Exogenous IV Sensitivity",
-  ...
-)
 }
 \arguments{
-\item{df_plot}{Data frame returned by a sensitivity helper or \code{plausexog_fit} object.}
+\item{df_plot}{Data frame returned by a sensitivity helper or a \code{spliv_fit} object.}
 
 \item{ylab}{Y-axis label.}
 

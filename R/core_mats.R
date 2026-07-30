@@ -232,7 +232,7 @@ conley_uci_mats <- sp_uci_mats
 #' @examples
 #' set.seed(3)
 #' d <- data.frame(y = rnorm(80), x = rnorm(80), z = rnorm(80))
-#' prior <- conley_prior_ltz(y ~ x | z, d, inst_vary = "z", sd = 0.1)
+#' prior <- sp_prior_ltz(y ~ x | z, d, inst_vary = "z", sd = 0.1)
 #' sp_ltz(y ~ x | z, d, prior$omega, prior$mu)
 #' @export
 sp_ltz <- function(formula, data, omega, mu,
@@ -262,23 +262,6 @@ sp_ltz <- function(formula, data, omega, mu,
     inst_names = parsed$inst_names
   )
   out$table
-}
-
-#' @rdname sp_ltz
-#' @export
-conley_ltz <- function(formula, data, omega, mu,
-                       level = 0.95,
-                       vcov = c("hc1", "hc0", "iid", "cluster"),
-                       cluster = NULL) {
-  sp_ltz(
-    formula = formula,
-    data = data,
-    omega = omega,
-    mu = mu,
-    level = level,
-    vcov = vcov,
-    cluster = cluster
-  )
 }
 
 #' Union of Confidence Intervals for Plausibly Exogenous IV
@@ -342,28 +325,5 @@ sp_uci <- function(formula, data,
     vcov = vcov,
     cluster_id = cluster_id,
     coef_names = parsed$coef_names
-  )
-}
-
-#' @rdname sp_uci
-#' @export
-conley_uci <- function(formula, data,
-                       inst,
-                       gmin,
-                       gmax,
-                       grid = 21,
-                       level = 0.95,
-                       vcov = c("hc1", "hc0", "iid", "cluster"),
-                       cluster = NULL) {
-  sp_uci(
-    formula = formula,
-    data = data,
-    inst = inst,
-    gmin = gmin,
-    gmax = gmax,
-    grid = grid,
-    level = level,
-    vcov = vcov,
-    cluster = cluster
   )
 }

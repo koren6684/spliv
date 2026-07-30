@@ -2,7 +2,6 @@
 % Please edit documentation in R/plotting.R
 \name{sp_prior_ltz}
 \alias{sp_prior_ltz}
-\alias{conley_prior_ltz}
 \title{Build LTZ Prior Matrices for Chosen Instruments}
 \usage{
 sp_prior_ltz(
@@ -14,19 +13,9 @@ sp_prior_ltz(
   vcov = c("hc1", "hc0", "iid", "cluster"),
   cluster = NULL
 )
-
-conley_prior_ltz(
-  formula,
-  data = NULL,
-  inst_vary,
-  mean = 0,
-  sd = 1,
-  vcov = c("hc1", "hc0", "iid", "cluster"),
-  cluster = NULL
-)
 }
 \arguments{
-\item{formula}{Formula or \code{plausexog_fit}.}
+\item{formula}{Formula or \code{spliv_fit}.}
 
 \item{data}{Data frame when \code{formula} is a formula.}
 

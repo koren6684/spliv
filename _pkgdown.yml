@@ -1,7 +1,9 @@
-url: https://koren6684.github.io/spliv
+url: https://koren6684.github.io/spliv/
+
 template:
   bootstrap: 5
   bootswatch: flatly
+
 reference:
   - title: Get started
     contents:
@@ -9,45 +11,33 @@ reference:
   - title: Main estimation
     contents:
       - spliv
-      - sp_ltz
-      - sp_uci
-      - conley_ltz
-      - conley_uci
-  - title: Pattern definitions
+  - title: Pattern definition
     contents:
       - spliv_pattern
       - spliv_eval_pattern
-      - iv_inst_names
-  - title: Sensitivity paths
+  - title: Sensitivity paths and tipping points
     contents:
       - spliv_sensitivity_path
       - spliv_tipping_point
-      - sp_sensitivity_ltz_normal
-      - sp_sensitivity_uci_support
-  - title: BPE design and validation
+  - title: Confirmatory BPE
     contents:
       - bpe_design
       - bpe_eval_subset
       - bpe_validate_design
-      - embed_prior_into_full_Z
+  - title: Exploratory diagnostics
+    contents:
+      - bpe_explore_subsets
+  - title: Advanced low-level interface
+    desc: >
+      Lower-level interfaces retained for custom workflows. Ordinary users
+      should normally prefer `spliv()` and `spliv_sensitivity_path()`.
+    contents:
+      - sp_ltz
+      - sp_uci
+      - sp_prior_ltz
+      - sp_sensitivity_ltz_normal
+      - sp_sensitivity_uci_support
+      - sp_sensitivity_ltz_uniform01_as_normal
   - title: Plotting
     contents:
       - plot_sp_sensitivity
-      - plot_conley_sensitivity
-  - title: Compatibility/deprecated functions
-    contents:
-      - plausexog
-      - plausexog_iv
-      - bpe_explore_subsets
-      - bpe_find_subset
-      - estimate_gamma_zero_first_stage
-  - title: Compatibility and legacy helpers
-    desc: >
-      Compatibility functions and lower-level helpers retained for existing
-      workflows.
-    contents:
-      - demean_fixest
-      - demean_lfe
-      - sp_prior_ltz
-      - sp_sensitivity_ltz_uniform01_as_normal
-      

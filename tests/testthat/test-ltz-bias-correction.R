@@ -17,7 +17,7 @@ test_that("LTZ scalar correction matches mu/pi in just-identified model", {
   Z <- matrix(z, ncol = 1, dimnames = list(NULL, "z"))
 
   iv <- spliv:::.iv_2sls_mats(y = y, X = X, Z = Z, vcov = "iid")
-  ltz <- spliv:::conley_ltz_mats(
+  ltz <- spliv:::sp_ltz_mats(
     y = y,
     X = X,
     Z = Z,

@@ -110,7 +110,7 @@
     warnings = msg,
     internals = list(y = y, X = X, Z = Z, W = W, cluster_id = cluster_id)
   )
-  class(fit) <- "plausexog_fit"
+  class(fit) <- "spliv_fit"
   fit
 }
 
@@ -831,7 +831,7 @@ spliv_eval_pattern <- function(pattern, data) {
 #'   instead refers to theta bounds over the pattern-scaled direct effect.
 #' @param ... Reserved.
 #'
-#' @return Object of class `plausexog_fit`.
+#' @return Object of class `spliv_fit`.
 #'
 #' @details
 #' `spliv` implements patterned sensitivity analysis for exclusion violations in
@@ -987,10 +987,10 @@ spliv <- function(formula,
     }
 
     if (fe_engine == "fixest") {
-      dm <- demean_fixest(y = y, X = X, Z = Z, W = W, fe_fml = fe, data = data_cc)
+      dm <- .demean_fixest(y = y, X = X, Z = Z, W = W, fe_fml = fe, data = data_cc)
     } else {
       fe_df <- .build_fe_frame(fe, data_cc)
-      dm <- demean_lfe(y = y, X = X, Z = Z, W = W, fe_list = fe_df)
+      dm <- .demean_lfe(y = y, X = X, Z = Z, W = W, fe_list = fe_df)
     }
 
     y <- dm$y
@@ -1197,7 +1197,7 @@ spliv <- function(formula,
         warnings = unique(warn_msgs),
         internals = list(y = y, X = X, Z = Z, W = W, cluster_id = cluster_id)
       )
-      class(fit) <- "plausexog_fit"
+      class(fit) <- "spliv_fit"
       return(fit)
     }
 
@@ -1276,7 +1276,7 @@ spliv <- function(formula,
       warnings = unique(warn_msgs),
       internals = list(y = y, X = X, Z = Z, W = W, cluster_id = cluster_id)
     )
-    class(fit) <- "plausexog_fit"
+    class(fit) <- "spliv_fit"
     return(fit)
   }
 
@@ -1360,7 +1360,7 @@ spliv <- function(formula,
       warnings = unique(warn_msgs),
       internals = list(y = y, X = X, Z = Z, W = W, cluster_id = cluster_id)
     )
-    class(fit) <- "plausexog_fit"
+    class(fit) <- "spliv_fit"
     return(fit)
   }
 
@@ -1443,12 +1443,12 @@ spliv <- function(formula,
     warnings = unique(warn_msgs),
     internals = list(y = y, X = X, Z = Z, W = W, cluster_id = cluster_id)
   )
-  class(fit) <- "plausexog_fit"
+  class(fit) <- "spliv_fit"
   fit
 }
 
 #' @export
-print.plausexog_fit <- function(x, ...) {
+print.spliv_fit <- function(x, ...) {
   cat("spliv fit\n")
   cat("  method:", x$method, "\n")
   if (!is.null(x$fe)) {
@@ -1462,4 +1462,9 @@ print.plausexog_fit <- function(x, ...) {
   }
   print(x$estimates)
   invisible(x)
+}
+
+#' @export
+print.plausexog_fit <- function(x, ...) {
+  print.spliv_fit(x, ...)
 }

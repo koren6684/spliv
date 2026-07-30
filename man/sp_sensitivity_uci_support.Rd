@@ -2,7 +2,6 @@
 % Please edit documentation in R/plotting.R
 \name{sp_sensitivity_uci_support}
 \alias{sp_sensitivity_uci_support}
-\alias{conley_sensitivity_uci_support}
 \title{UCI Sensitivity over Delta Grid}
 \usage{
 sp_sensitivity_uci_support(
@@ -19,24 +18,9 @@ sp_sensitivity_uci_support(
   cluster = NULL,
   scale_instrument = c("residual_sd", "none")
 )
-
-conley_sensitivity_uci_support(
-  formula,
-  data = NULL,
-  term,
-  inst_vary,
-  delta_grid,
-  gmin_fun = function(delta) -delta,
-  gmax_fun = function(delta) delta,
-  grid = 41,
-  level = 0.95,
-  vcov = c("hc1", "hc0", "iid", "cluster"),
-  cluster = NULL,
-  scale_instrument = c("residual_sd", "none")
-)
 }
 \arguments{
-\item{formula}{Formula or \code{plausexog_fit}.}
+\item{formula}{Formula or \code{spliv_fit}.}
 
 \item{data}{Data frame when \code{formula} is a formula.}
 

@@ -2,7 +2,6 @@
 % Please edit documentation in R/plotting.R
 \name{sp_sensitivity_ltz_normal}
 \alias{sp_sensitivity_ltz_normal}
-\alias{conley_sensitivity_ltz_normal}
 \title{LTZ Sensitivity over Delta Grid}
 \usage{
 sp_sensitivity_ltz_normal(
@@ -18,23 +17,9 @@ sp_sensitivity_ltz_normal(
   cluster = NULL,
   scale_instrument = c("residual_sd", "none")
 )
-
-conley_sensitivity_ltz_normal(
-  formula,
-  data = NULL,
-  term,
-  inst_vary,
-  delta_grid,
-  mean_fun = function(delta) 0,
-  sd_fun = function(delta) delta,
-  level = 0.95,
-  vcov = c("hc1", "hc0", "iid", "cluster"),
-  cluster = NULL,
-  scale_instrument = c("residual_sd", "none")
-)
 }
 \arguments{
-\item{formula}{Formula or \code{plausexog_fit}.}
+\item{formula}{Formula or \code{spliv_fit}.}
 
 \item{data}{Data frame when \code{formula} is a formula.}
 

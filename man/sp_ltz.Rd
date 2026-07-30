@@ -2,20 +2,9 @@
 % Please edit documentation in R/core_mats.R
 \name{sp_ltz}
 \alias{sp_ltz}
-\alias{conley_ltz}
 \title{Local-to-Zero Inference for Plausibly Exogenous IV}
 \usage{
 sp_ltz(
-  formula,
-  data,
-  omega,
-  mu,
-  level = 0.95,
-  vcov = c("hc1", "hc0", "iid", "cluster"),
-  cluster = NULL
-)
-
-conley_ltz(
   formula,
   data,
   omega,
@@ -49,6 +38,6 @@ Formula-level wrapper over the matrix core LTZ implementation.
 \examples{
 set.seed(3)
 d <- data.frame(y = rnorm(80), x = rnorm(80), z = rnorm(80))
-prior <- conley_prior_ltz(y ~ x | z, d, inst_vary = "z", sd = 0.1)
+prior <- sp_prior_ltz(y ~ x | z, d, inst_vary = "z", sd = 0.1)
 sp_ltz(y ~ x | z, d, prior$omega, prior$mu)
 }
