@@ -34,36 +34,61 @@ library(spliv)
 
 set.seed(42)
 n <- 240
+z ## A small synthetic example
+
+The examples below are self-contained and use no empirical data.
+
+```r
+library(spliv)
+
+set.seed(42)
+n <- 240
 z <- rnorm(n)
 w <- rnorm(n)
 inactive <- seq_len(n) <= n / 2
 x <- ifelse(inactive, 0, 1) * z + 0.4 * w + rnorm(n)
 y <- 1.2 * x + 0.25 * w + 0.15 * z + rnorm(n)
+
 d <- data.frame(y, x, z, w, inactive)
 f <- y ~ x + w | z + w
-
-fit <- spliv(f, d, method = "ltz", delta = 0, vcov = "hc1")
-fit$estimates
-plot(fit)
 ```
 
-## Uniform UCI
+### Baseline IV estimate
 
-Uniform UCI varies an excluded instrument's direct effect over a bounded
-interval:
+Setting `delta = 0` reproduces the conventional IV confidence interval under strict exclusion.
+
+```r
+baseline <- spliv(
+  f,
+  d,
+  method = "uci",
+  delta = 0,
+  vcov = "hc1"
+)
+
+baseline$estimates
+```
+
+### Uniform UCI sensitivity
+
+Union-of-confidence-intervals (UCI) sensitivity allows the excluded instrument’s direct effect to vary over a bounded interval.
 
 ```r
 uniform <- spliv(
-  f, d, method = "uci", delta = 0.20, vcov = "hc1",
+  f,
+  d,
+  method = "uci",
+  delta = 0.20,
+  vcov = "hc1",
   grid = list(steps = 11)
 )
+
 uniform$estimates
 ```
 
-## Patterned UCI/LTZ
+### Patterned UCI and LTZ sensitivity
 
-Use a theory-motivated `spliv_pattern()` when the plausible direct effect is
-expected to vary with an observed exposure:
+Use a theory-motivated `spliv_pattern()` to allow the possible direct effect to vary with an observed exposure. The package supports both bounded UCI and local-to-zero (LTZ) sensitivity.
 
 ```r
 pattern <- spliv_pattern(
@@ -76,36 +101,50 @@ pattern <- spliv_pattern(
 )
 
 patterned_uci <- spliv(
-  f, d, method = "uci", delta = 0.20, vcov = "hc1",
-  violation_pattern = pattern, grid = list(steps = 11)
+  f,
+  d,
+  method = "uci",
+  delta = 0.20,
+  vcov = "hc1",
+  violation_pattern = pattern,
+  grid = list(steps = 11)
 )
+
 patterned_ltz <- spliv(
-  f, d, method = "ltz", delta = 0.20, vcov = "hc1",
+  f,
+  d,
+  method = "ltz",
+  delta = 0.20,
+  vcov = "hc1",
   violation_pattern = pattern
 )
+
+patterned_uci$estimates
+patterned_ltz$estimates
 ```
 
-## Sensitivity paths and tipping points
+### Sensitivity paths and tipping points
 
-Trace a pre-specified grid and report the first grid value at which an interval
-contains zero:
+Sensitivity paths report how the estimated interval changes over a pre-specified range of direct-effect magnitudes. The tipping point is the first value on the supplied grid at which the interval includes zero.
 
 ```r
 path <- spliv_sensitivity_path(
-  f, d, method = "uci", delta_grid = seq(0, 0.30, by = 0.05),
-  vcov = "hc1", violation_pattern = pattern
+  f,
+  d,
+  method = "uci",
+  delta_grid = seq(0, 0.30, by = 0.05),
+  vcov = "hc1",
+  violation_pattern = pattern
 )
+
 head(path)
 spliv_tipping_point(path)
 plot(path, term = "x")
 ```
 
-## Confirmatory BPE
+### Confirmatory BPE
 
-BPE starts with an outcome-independent, pre-specified design and validates it
-before estimation. The margin below is a scale-aware, synthetic illustrative
-choice; in substantive work, pre-specify it from the scientific design rather
-than tuning it after seeing whether BPE passes.
+Confirmatory Beyond Plausibly Exogenous (BPE) analysis begins with a pre-specified, outcome-independent instrument-inactive subset. The package validates the proposed design and estimates the BPE model only when the eligibility diagnostics pass.
 
 ```r
 design <- bpe_design(
@@ -118,17 +157,36 @@ design <- bpe_design(
   transportability_rationale = "The subset direct effect is informative for the target sample."
 )
 
+# This is a scale-aware illustrative margin for the synthetic example. In a
+# substantive analysis, pre-specify the margin from the scientific design; do
+# not tune it to make BPE pass.
 bpe_margin <- 0.25 * sd(resid(lm(x ~ w)))
+
 validation <- bpe_validate_design(
-  f, d, design = design, vcov = "hc1",
-  bpe_min_n_S = 40, bpe_equiv_margin = bpe_margin
+  f,
+  d,
+  design = design,
+  vcov = "hc1",
+  bpe_min_n_S = 40,
+  bpe_equiv_margin = bpe_margin
 )
-validation[c("n_S", "equivalence_passed", "eligibility_passed")]
+
+validation[c(
+  "n_S",
+  "equivalence_passed",
+  "eligibility_passed"
+)]
 
 bpe_fit <- spliv(
-  f, d, method = "bpe", bpe_design = design,
-  vcov = "hc1", bpe_min_n_S = 40, bpe_equiv_margin = bpe_margin
+  f,
+  d,
+  method = "bpe",
+  bpe_design = design,
+  vcov = "hc1",
+  bpe_min_n_S = 40,
+  bpe_equiv_margin = bpe_margin
 )
+
 bpe_fit$estimates
 ```
 
