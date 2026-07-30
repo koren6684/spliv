@@ -11,20 +11,13 @@ plot_sp_sensitivity(
   main = "Plausibly Exogenous IV Sensitivity",
   ...
 )
-
-plot_conley_sensitivity(
-  df_plot,
-  ylab = "Effect (beta)",
-  main = "Plausibly Exogenous IV Sensitivity",
-  ...
-)
 ```
 
 ## Arguments
 
 - df_plot:
 
-  Data frame returned by a sensitivity helper or `plausexog_fit` object.
+  Data frame returned by a sensitivity helper or a `spliv_fit` object.
 
 - ylab:
 

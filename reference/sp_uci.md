@@ -16,18 +16,6 @@ sp_uci(
   vcov = c("hc1", "hc0", "iid", "cluster"),
   cluster = NULL
 )
-
-conley_uci(
-  formula,
-  data,
-  inst,
-  gmin,
-  gmax,
-  grid = 21,
-  level = 0.95,
-  vcov = c("hc1", "hc0", "iid", "cluster"),
-  cluster = NULL
-)
 ```
 
 ## Arguments

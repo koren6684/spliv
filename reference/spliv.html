@@ -9,7 +9,7 @@ fixed-effect or residualized IV designs."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">spliv</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -35,7 +35,7 @@ fixed-effect or residualized IV designs."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Patterned Sensitivity Analysis for Plausibly Exogenous IV</h1>
-      <small class="dont-index">Source: <a href="https://github.com/koren6684/spliv/blob/main/R/plausexog.R" class="external-link"><code>R/plausexog.R</code></a>, <a href="https://github.com/koren6684/spliv/blob/main/R/spliv.R" class="external-link"><code>R/spliv.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/koren6684/spliv/blob/main/R/spliv.R" class="external-link"><code>R/spliv.R</code></a></small>
       <div class="d-none name"><code>spliv.Rd</code></div>
     </div>
 
@@ -46,39 +46,7 @@ fixed-effect or residualized IV designs.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">plausexog</span><span class="op">(</span></span>
-<span>  <span class="va">formula</span>,</span>
-<span>  <span class="va">data</span>,</span>
-<span>  fe <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  fe_engine <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"fixest"</span>, <span class="st">"lfe"</span><span class="op">)</span>,</span>
-<span>  vcov <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"iid"</span>, <span class="st">"hc1"</span>, <span class="st">"cluster"</span><span class="op">)</span>,</span>
-<span>  cluster <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ltz"</span>, <span class="st">"uci"</span>, <span class="st">"bpe"</span><span class="op">)</span>,</span>
-<span>  prior <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  delta <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  violation_pattern <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  bpe <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  bpe_design <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  bpe_spec <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>design <span class="op">=</span> <span class="cn">NULL</span>, subset <span class="op">=</span> <span class="cn">NULL</span>, z_names <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span>,</span>
-<span>  bpe_kappa <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  bpe_omega <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  bpe_min_n_S <span class="op">=</span> <span class="fl">2000</span>,</span>
-<span>  bpe_min_clusters_S <span class="op">=</span> <span class="fl">30</span>,</span>
-<span>  bpe_max_F_S <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  bpe_min_varZ_S <span class="op">=</span> <span class="fl">1e-06</span>,</span>
-<span>  bpe_equiv_margin <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  bpe_equiv_level <span class="op">=</span> <span class="fl">0.95</span>,</span>
-<span>  bpe_transport <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sampling"</span>, <span class="st">"none"</span>, <span class="st">"conservative"</span><span class="op">)</span>,</span>
-<span>  bpe_transport_kappa <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  bpe_not_applicable <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"na"</span>, <span class="st">"error"</span><span class="op">)</span>,</span>
-<span>  scale_instrument <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"residual_sd"</span>, <span class="st">"none"</span><span class="op">)</span>,</span>
-<span>  grid <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  <span class="va">...</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu">plausexog_iv</span><span class="op">(</span><span class="va">...</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu">spliv</span><span class="op">(</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">spliv</span><span class="op">(</span></span>
 <span>  <span class="va">formula</span>,</span>
 <span>  <span class="va">data</span>,</span>
 <span>  fe <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -254,7 +222,7 @@ instead refers to theta bounds over the pattern-scaled direct effect.</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>Object of class <code>plausexog_fit</code>.</p>
+    <p>Object of class <code>spliv_fit</code>.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -280,12 +248,6 @@ subset size, cluster count, residualized instrument variation, and a
 first-stage equivalence interval.</p>
 <p>BPE reduced-form covariance is propagated as a full covariance matrix and can
 optionally be inflated via <code>bpe_transport</code>.</p>
-    </div>
-    <div class="section level2">
-    <h2 id="deprecated-wrappers">Deprecated Wrappers<a class="anchor" aria-label="anchor" href="#deprecated-wrappers"></a></h2>
-
-
-<p><code>plausexog()</code> and <code>plausexog_iv()</code> are deprecated compatibility aliases for <code>spliv()</code>.</p>
     </div>
 
     <div class="section level2">

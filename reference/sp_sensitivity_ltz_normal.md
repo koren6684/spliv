@@ -18,27 +18,13 @@ sp_sensitivity_ltz_normal(
   cluster = NULL,
   scale_instrument = c("residual_sd", "none")
 )
-
-conley_sensitivity_ltz_normal(
-  formula,
-  data = NULL,
-  term,
-  inst_vary,
-  delta_grid,
-  mean_fun = function(delta) 0,
-  sd_fun = function(delta) delta,
-  level = 0.95,
-  vcov = c("hc1", "hc0", "iid", "cluster"),
-  cluster = NULL,
-  scale_instrument = c("residual_sd", "none")
-)
 ```
 
 ## Arguments
 
 - formula:
 
-  Formula or `plausexog_fit`.
+  Formula or `spliv_fit`.
 
 - data:
 

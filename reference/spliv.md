@@ -6,38 +6,6 @@ violations in fixed-effect or residualized IV designs.
 ## Usage
 
 ``` r
-plausexog(
-  formula,
-  data,
-  fe = NULL,
-  fe_engine = c("fixest", "lfe"),
-  vcov = c("iid", "hc1", "cluster"),
-  cluster = NULL,
-  method = c("ltz", "uci", "bpe"),
-  prior = NULL,
-  delta = NULL,
-  violation_pattern = NULL,
-  bpe = FALSE,
-  bpe_design = NULL,
-  bpe_spec = list(design = NULL, subset = NULL, z_names = NULL),
-  bpe_kappa = 1,
-  bpe_omega = NULL,
-  bpe_min_n_S = 2000,
-  bpe_min_clusters_S = 30,
-  bpe_max_F_S = NULL,
-  bpe_min_varZ_S = 1e-06,
-  bpe_equiv_margin = NULL,
-  bpe_equiv_level = 0.95,
-  bpe_transport = c("sampling", "none", "conservative"),
-  bpe_transport_kappa = 0,
-  bpe_not_applicable = c("na", "error"),
-  scale_instrument = c("residual_sd", "none"),
-  grid = list(),
-  ...
-)
-
-plausexog_iv(...)
-
 spliv(
   formula,
   data,
@@ -215,7 +183,7 @@ spliv(
 
 ## Value
 
-Object of class `plausexog_fit`.
+Object of class `spliv_fit`.
 
 ## Details
 
@@ -251,11 +219,6 @@ and a first-stage equivalence interval.
 
 BPE reduced-form covariance is propagated as a full covariance matrix
 and can optionally be inflated via `bpe_transport`.
-
-## Deprecated Wrappers
-
-`plausexog()` and `plausexog_iv()` are deprecated compatibility aliases
-for `spliv()`.
 
 ## Examples
 

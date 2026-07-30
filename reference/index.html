@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">spliv</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -63,26 +63,12 @@
 
       <dl><dt>
 
-          <code><a href="spliv.html">plausexog()</a></code> <code><a href="spliv.html">plausexog_iv()</a></code> <code><a href="spliv.html">spliv()</a></code>
+          <code><a href="spliv.html">spliv()</a></code>
 
         </dt>
         <dd>Patterned Sensitivity Analysis for Plausibly Exogenous IV</dd>
-
-        <dt>
-
-          <code><a href="sp_ltz.html">sp_ltz()</a></code> <code><a href="sp_ltz.html">conley_ltz()</a></code>
-
-        </dt>
-        <dd>Local-to-Zero Inference for Plausibly Exogenous IV</dd>
-
-        <dt>
-
-          <code><a href="sp_uci.html">sp_uci()</a></code> <code><a href="sp_uci.html">conley_uci()</a></code>
-
-        </dt>
-        <dd>Union of Confidence Intervals for Plausibly Exogenous IV</dd>
       </dl></div><div class="section level2">
-      <h2 id="pattern-definitions">Pattern definitions<a class="anchor" aria-label="anchor" href="#pattern-definitions"></a></h2>
+      <h2 id="pattern-definition">Pattern definition<a class="anchor" aria-label="anchor" href="#pattern-definition"></a></h2>
 
 
 
@@ -104,15 +90,8 @@
 
         </dt>
         <dd>Evaluate a Direct-Effect Pattern</dd>
-
-        <dt>
-
-          <code><a href="iv_inst_names.html">iv_inst_names()</a></code>
-
-        </dt>
-        <dd>Instrument Names for Parsed IV Formula</dd>
       </dl></div><div class="section level2">
-      <h2 id="sensitivity-paths">Sensitivity paths<a class="anchor" aria-label="anchor" href="#sensitivity-paths"></a></h2>
+      <h2 id="sensitivity-paths-and-tipping-points">Sensitivity paths and tipping points<a class="anchor" aria-label="anchor" href="#sensitivity-paths-and-tipping-points"></a></h2>
 
 
 
@@ -134,22 +113,8 @@
 
         </dt>
         <dd>Extract Tipping-Point Delta from a Sensitivity Path</dd>
-
-        <dt>
-
-          <code><a href="sp_sensitivity_ltz_normal.html">sp_sensitivity_ltz_normal()</a></code> <code><a href="sp_sensitivity_ltz_normal.html">conley_sensitivity_ltz_normal()</a></code>
-
-        </dt>
-        <dd>LTZ Sensitivity over Delta Grid</dd>
-
-        <dt>
-
-          <code><a href="sp_sensitivity_uci_support.html">sp_sensitivity_uci_support()</a></code> <code><a href="sp_sensitivity_uci_support.html">conley_sensitivity_uci_support()</a></code>
-
-        </dt>
-        <dd>UCI Sensitivity over Delta Grid</dd>
       </dl></div><div class="section level2">
-      <h2 id="bpe-design-and-validation">BPE design and validation<a class="anchor" aria-label="anchor" href="#bpe-design-and-validation"></a></h2>
+      <h2 id="confirmatory-bpe">Confirmatory BPE<a class="anchor" aria-label="anchor" href="#confirmatory-bpe"></a></h2>
 
 
 
@@ -178,13 +143,73 @@
 
         </dt>
         <dd>Validate a Confirmatory BPE Design</dd>
+      </dl></div><div class="section level2">
+      <h2 id="exploratory-diagnostics">Exploratory diagnostics<a class="anchor" aria-label="anchor" href="#exploratory-diagnostics"></a></h2>
+
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="bpe_explore_subsets.html">bpe_explore_subsets()</a></code>
+
+        </dt>
+        <dd>Explore Candidate BPE Subsets</dd>
+      </dl></div><div class="section level2">
+      <h2 id="advanced-low-level-interface">Advanced low-level interface<a class="anchor" aria-label="anchor" href="#advanced-low-level-interface"></a></h2>
+
+      <div class="section-desc"><p>Lower-level interfaces retained for custom workflows. Ordinary users should normally prefer <code><a href="../reference/spliv.html">spliv()</a></code> and <code><a href="../reference/spliv_sensitivity_path.html">spliv_sensitivity_path()</a></code>.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="sp_ltz.html">sp_ltz()</a></code>
+
+        </dt>
+        <dd>Local-to-Zero Inference for Plausibly Exogenous IV</dd>
 
         <dt>
 
-          <code><a href="embed_prior_into_full_Z.html">embed_prior_into_full_Z()</a></code>
+          <code><a href="sp_uci.html">sp_uci()</a></code>
 
         </dt>
-        <dd>Embed Prior into Full Instrument Space</dd>
+        <dd>Union of Confidence Intervals for Plausibly Exogenous IV</dd>
+
+        <dt>
+
+          <code><a href="sp_prior_ltz.html">sp_prior_ltz()</a></code>
+
+        </dt>
+        <dd>Build LTZ Prior Matrices for Chosen Instruments</dd>
+
+        <dt>
+
+          <code><a href="sp_sensitivity_ltz_normal.html">sp_sensitivity_ltz_normal()</a></code>
+
+        </dt>
+        <dd>LTZ Sensitivity over Delta Grid</dd>
+
+        <dt>
+
+          <code><a href="sp_sensitivity_uci_support.html">sp_sensitivity_uci_support()</a></code>
+
+        </dt>
+        <dd>UCI Sensitivity over Delta Grid</dd>
+
+        <dt>
+
+          <code><a href="sp_sensitivity_ltz_uniform01_as_normal.html">sp_sensitivity_ltz_uniform01_as_normal()</a></code>
+
+        </dt>
+        <dd>LTZ Sensitivity with Normal Approximation to U(0, delta)</dd>
       </dl></div><div class="section level2">
       <h2 id="plotting">Plotting<a class="anchor" aria-label="anchor" href="#plotting"></a></h2>
 
@@ -197,84 +222,10 @@
 
       <dl><dt>
 
-          <code><a href="plot_sp_sensitivity.html">plot_sp_sensitivity()</a></code> <code><a href="plot_sp_sensitivity.html">plot_conley_sensitivity()</a></code>
+          <code><a href="plot_sp_sensitivity.html">plot_sp_sensitivity()</a></code>
 
         </dt>
         <dd>Plot Patterned Sensitivity Output or a Fitted Object</dd>
-      </dl></div><div class="section level2">
-      <h2 id="compatibility-deprecated-functions">Compatibility/deprecated functions<a class="anchor" aria-label="anchor" href="#compatibility-deprecated-functions"></a></h2>
-
-
-
-      <dl></dl></div><div class="section level2">
-
-
-
-
-      <dl><dt>
-
-          <code><a href="spliv.html">plausexog()</a></code> <code><a href="spliv.html">plausexog_iv()</a></code> <code><a href="spliv.html">spliv()</a></code>
-
-        </dt>
-        <dd>Patterned Sensitivity Analysis for Plausibly Exogenous IV</dd>
-
-        <dt>
-
-          <code><a href="bpe_explore_subsets.html">bpe_explore_subsets()</a></code>
-
-        </dt>
-        <dd>Explore Candidate BPE Subsets</dd>
-
-        <dt>
-
-          <code><a href="bpe_find_subset.html">bpe_find_subset()</a></code>
-
-        </dt>
-        <dd>Deprecated Exploratory BPE Subset Search</dd>
-
-        <dt>
-
-          <code><a href="estimate_gamma_zero_first_stage.html">estimate_gamma_zero_first_stage()</a></code>
-
-        </dt>
-        <dd>Legacy Exploratory BPE Prior Helper</dd>
-      </dl></div><div class="section level2">
-      <h2 id="compatibility-and-legacy-helpers">Compatibility and legacy helpers<a class="anchor" aria-label="anchor" href="#compatibility-and-legacy-helpers"></a></h2>
-
-      <div class="section-desc"><p>Compatibility functions and lower-level helpers retained for existing workflows.</p></div>
-
-      <dl></dl></div><div class="section level2">
-
-
-
-
-      <dl><dt>
-
-          <code><a href="demean_fixest.html">demean_fixest()</a></code>
-
-        </dt>
-        <dd>Demean with fixest</dd>
-
-        <dt>
-
-          <code><a href="demean_lfe.html">demean_lfe()</a></code>
-
-        </dt>
-        <dd>Demean with lfe</dd>
-
-        <dt>
-
-          <code><a href="sp_prior_ltz.html">sp_prior_ltz()</a></code> <code><a href="sp_prior_ltz.html">conley_prior_ltz()</a></code>
-
-        </dt>
-        <dd>Build LTZ Prior Matrices for Chosen Instruments</dd>
-
-        <dt>
-
-          <code><a href="sp_sensitivity_ltz_uniform01_as_normal.html">sp_sensitivity_ltz_uniform01_as_normal()</a></code> <code><a href="sp_sensitivity_ltz_uniform01_as_normal.html">conley_sensitivity_ltz_uniform01_as_normal()</a></code>
-
-        </dt>
-        <dd>LTZ Sensitivity with Normal Approximation to U(0, delta)</dd>
       </dl></div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

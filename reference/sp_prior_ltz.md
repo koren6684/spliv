@@ -14,23 +14,13 @@ sp_prior_ltz(
   vcov = c("hc1", "hc0", "iid", "cluster"),
   cluster = NULL
 )
-
-conley_prior_ltz(
-  formula,
-  data = NULL,
-  inst_vary,
-  mean = 0,
-  sd = 1,
-  vcov = c("hc1", "hc0", "iid", "cluster"),
-  cluster = NULL
-)
 ```
 
 ## Arguments
 
 - formula:
 
-  Formula or `plausexog_fit`.
+  Formula or `spliv_fit`.
 
 - data:
 

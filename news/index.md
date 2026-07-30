@@ -1,5 +1,23 @@
 # Changelog
 
+## spliv 0.2.0
+
+- [`spliv()`](https://koren6684.github.io/spliv/reference/spliv.md) is
+  the sole recommended primary estimator.
+- Fit objects now use class `spliv_fit`.
+- Accidental legacy aliases introduced in 0.1.1 were removed from the
+  public API, including the old `plausexog()`/`conley_*()` names and
+  implementation helper exports.
+- No statistical estimators or numerical results were intentionally
+  changed.
+
+## spliv 0.1.1
+
+CRAN release: 2026-07-29
+
+- Include generated vignette metadata in source-package builds.
+- Complete initial CRAN-readiness and portability checks.
+
 ## spliv 0.1.0
 
 Initial public staging release. This version provides uniform and
