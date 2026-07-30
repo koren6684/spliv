@@ -55,18 +55,6 @@
   )
 }
 
-#' Instrument Names for Parsed IV Formula
-#'
-#' Returns the instrument-matrix column order used internally.
-#'
-#' @param formula IV formula `y ~ X | Z`.
-#' @param data Data frame.
-#'
-#' @return Character vector of instrument names.
-#' @examples
-#' d <- data.frame(y = 1:4, x = 1:4, z = 4:1)
-#' iv_inst_names(y ~ x | z, d)
-#' @export
-iv_inst_names <- function(formula, data) {
+.iv_inst_names <- function(formula, data) {
   .iv_parse(formula, data)$inst_names
 }

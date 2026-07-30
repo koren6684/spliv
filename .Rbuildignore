@@ -9,6 +9,7 @@
 ^check$
 ^docs$
 ^PUBLIC_API_AUDIT\.md$
+^dev$
 ^\.gitignore$
 ^\.Rbuildignore$
 ^LICENSE$

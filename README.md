@@ -3,9 +3,23 @@
 [![R-CMD-check](https://github.com/koren6684/spliv/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/koren6684/spliv/actions/workflows/R-CMD-check.yaml)
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 
-`spliv` provides sensitivity analysis for instrumental-variables (IV) designs when exclusion may fail in structured ways, such as in geolocated clustering or very large data panels. It keeps uniform Conley-style uncertainty as a baseline, adds researcher-specified direct-effect patterns for spatial or panel data, traces uncertainty over sensitivity paths, and supports confirmatory Beyond Plausibly Exogenous (BPE) designs based on a pre-specified instrument-inactive subset. The package does not discover an unrestricted direct-effect field: the pattern or BPE design must be justified by the researcher.
+`spliv` provides sensitivity analysis for instrumental-variables (IV) designs
+when exclusion may fail in structured ways. It supports uniform uncertainty
+intervals, researcher-specified direct-effect patterns, sensitivity paths and
+tipping points, and confirmatory Beyond Plausibly Exogenous (BPE) designs
+based on a pre-specified instrument-inactive subset. The package does not
+search for an unrestricted direct-effect field: patterns and BPE designs must
+be justified by the researcher.
 
 ## Installation
+
+Install the released package from CRAN:
+
+```r
+install.packages("spliv")
+```
+
+Install the development version from GitHub when you need unreleased changes:
 
 ```r
 remotes::install_github("koren6684/spliv")
@@ -13,7 +27,7 @@ remotes::install_github("koren6684/spliv")
 
 ## A small synthetic example
 
-The examples below are self-contained and use no empirical data.
+The examples below are self-contained and use no empirical or restricted data.
 
 ```r
 library(spliv)
@@ -28,13 +42,15 @@ y <- 1.2 * x + 0.25 * w + 0.15 * z + rnorm(n)
 d <- data.frame(y, x, z, w, inactive)
 f <- y ~ x + w | z + w
 
-baseline <- spliv(f, d, method = "uci", delta = 0, vcov = "hc1")
-baseline$estimates
+fit <- spliv(f, d, method = "ltz", delta = 0, vcov = "hc1")
+fit$estimates
+plot(fit)
 ```
 
-## Uniform UCI sensitivity
+## Uniform UCI
 
-Uniform UCI varies the excluded instrument's direct effect over a bounded interval.
+Uniform UCI varies an excluded instrument's direct effect over a bounded
+interval:
 
 ```r
 uniform <- spliv(
@@ -44,9 +60,10 @@ uniform <- spliv(
 uniform$estimates
 ```
 
-## Patterned UCI and LTZ sensitivity
+## Patterned UCI/LTZ
 
-Use a theory-motivated `spliv_pattern()` to allow direct effects to vary with an observed exposure.
+Use a theory-motivated `spliv_pattern()` when the plausible direct effect is
+expected to vary with an observed exposure:
 
 ```r
 pattern <- spliv_pattern(
@@ -70,6 +87,9 @@ patterned_ltz <- spliv(
 
 ## Sensitivity paths and tipping points
 
+Trace a pre-specified grid and report the first grid value at which an interval
+contains zero:
+
 ```r
 path <- spliv_sensitivity_path(
   f, d, method = "uci", delta_grid = seq(0, 0.30, by = 0.05),
@@ -82,7 +102,10 @@ plot(path, term = "x")
 
 ## Confirmatory BPE
 
-BPE begins with an outcome-independent, pre-specified design and validates it before estimation.
+BPE starts with an outcome-independent, pre-specified design and validates it
+before estimation. The margin below is a scale-aware, synthetic illustrative
+choice; in substantive work, pre-specify it from the scientific design rather
+than tuning it after seeing whether BPE passes.
 
 ```r
 design <- bpe_design(
@@ -95,17 +118,13 @@ design <- bpe_design(
   transportability_rationale = "The subset direct effect is informative for the target sample."
 )
 
+bpe_margin <- 0.25 * sd(resid(lm(x ~ w)))
 validation <- bpe_validate_design(
   f, d, design = design, vcov = "hc1",
-  bpe_min_n_S = 40,
-  bpe_equiv_margin = 0.25 * sd(resid(lm(x ~ w)))
+  bpe_min_n_S = 40, bpe_equiv_margin = bpe_margin
 )
 validation[c("n_S", "equivalence_passed", "eligibility_passed")]
 
-# This is a scale-aware illustrative margin for the synthetic example. In a
-# substantive analysis, pre-specify the margin from the scientific design; do
-# not tune it to make BPE pass.
-bpe_margin <- 0.25 * sd(resid(lm(x ~ w)))
 bpe_fit <- spliv(
   f, d, method = "bpe", bpe_design = design,
   vcov = "hc1", bpe_min_n_S = 40, bpe_equiv_margin = bpe_margin
@@ -113,11 +132,19 @@ bpe_fit <- spliv(
 bpe_fit$estimates
 ```
 
-`bpe_explore_subsets()` and the deprecated `bpe_find_subset()` are exploratory diagnostics. Searching across subgroups and reporting the first passing rule is **not** confirmatory BPE. Confirmatory BPE requires a pre-specified `bpe_design()` with a substantive rationale and transportability statement.
+`bpe_explore_subsets()` is an exploratory diagnostic. Searching across
+subgroups and reporting the first passing rule is **not** confirmatory BPE;
+confirmatory BPE requires a pre-specified `bpe_design()` with a substantive
+rationale and transportability statement.
+
+## Advanced low-level interface
+
+Advanced users needing lower-level controls can consult the online reference
+documentation. Ordinary analyses should normally use the canonical workflow
+shown above.
 
 ## Further resources
 
-- Reproducibility repository: [koren6684/spliv-reproducibility](https://github.com/koren6684/spliv-reproducibility) (prospective URL)
-- Citation: see [CITATION.cff](https://github.com/koren6684/spliv/blob/main/CITATION.cff) and `citation("spliv")`
-
-The public reproducibility repository contains synthetic simulation workflows and data-gated Koren (2018) and Lelkes, Sood, and Iyengar (2017) replication runners. Restricted third-party data are not redistributed.
+- Package website: <https://koren6684.github.io/spliv/>
+- Reproducibility repository: <https://github.com/koren6684/spliv-reproducibility>
+- Citation information: run `citation("spliv")` after installation.

@@ -44,10 +44,10 @@
     }
 
     if (fe_engine == "fixest") {
-      dm <- demean_fixest(y = y, X = X, Z = Z, W = W, fe_fml = fe, data = dsub)
+      dm <- .demean_fixest(y = y, X = X, Z = Z, W = W, fe_fml = fe, data = dsub)
     } else {
       fe_df <- .build_fe_frame(fe, dsub)
-      dm <- demean_lfe(y = y, X = X, Z = Z, W = W, fe_list = fe_df)
+      dm <- .demean_lfe(y = y, X = X, Z = Z, W = W, fe_list = fe_df)
     }
 
     y <- dm$y
@@ -539,78 +539,12 @@ bpe_explore_subsets <- function(data,
   )
 }
 
-#' Deprecated Exploratory BPE Subset Search
-#'
-#' `bpe_find_subset()` is retained for backward compatibility only. Use
-#' `bpe_explore_subsets()` for exploratory work and convert any theory-justified
-#' subset into a confirmatory `bpe_design()` object before calling `spliv()`.
-#'
-#' @inheritParams bpe_explore_subsets
-#' @return See `bpe_explore_subsets()`.
-#' @examples
-#' d <- data.frame(y = rnorm(40), x = rnorm(40), z = rnorm(40),
-#'   inactive = rep(c(TRUE, FALSE), each = 20))
-#' suppressWarnings(bpe_find_subset(
-#'   d, y ~ x | z, rules = list(inactive = ~ inactive)))
-#' @export
-bpe_find_subset <- function(data,
-                            spec,
-                            rules = NULL,
-                            seed = 1,
-                            min_n_S = NULL,
-                            max_F_S = NULL,
-                            min_varZ_S = NULL,
-                            return_all = TRUE) {
-  .Deprecated("bpe_explore_subsets", package = "spliv")
-  bpe_explore_subsets(
-    data = data,
-    spec = spec,
-    rules = rules,
-    seed = seed,
-    min_n_S = min_n_S,
-    max_F_S = max_F_S,
-    min_varZ_S = min_varZ_S,
-    return_all = return_all
-  )
-}
-
-#' Legacy Exploratory BPE Prior Helper
-#'
-#' `estimate_gamma_zero_first_stage()` is retained as a legacy exploratory
-#' helper. It is not sufficient for confirmatory BPE inference. Confirmatory
-#' BPE requires `bpe_design()`, `bpe_validate_design()`, and
-#' `spliv(method = "bpe", ...)`.
-#'
-#' @param data Data frame.
-#' @param y_name Outcome variable name.
-#' @param z_names Instrument names whose direct effects are estimated.
-#' @param controls Optional character vector of additional controls.
-#' @param subset Legacy subset specification. Accepts a `bpe_design()` object, a
-#'   one-sided formula, a `function(data)`, a logical vector, or a character
-#'   string naming a logical column in `data`.
-#' @param fe Optional one-sided FE formula. If supplied, uses `fixest::feols`.
-#'
-#' @return List with `mu_hat`, `omega_hat`, and diagnostics.
-#' @examples
-#' d <- data.frame(y = rnorm(40), z = rnorm(40), inactive = rep(c(TRUE, FALSE), each = 20))
-#' suppressWarnings(estimate_gamma_zero_first_stage(
-#'   d, y_name = "y", z_names = "z", subset = ~ inactive))
-#' @export
-estimate_gamma_zero_first_stage <- function(data,
-                                            y_name,
-                                            z_names,
-                                            controls = character(0),
-                                            subset,
-                                            fe = NULL) {
-  .Deprecated(
-    msg = paste(
-      "estimate_gamma_zero_first_stage() is a legacy/exploratory helper.",
-      "It is not sufficient for confirmatory BPE inference.",
-      "Confirmatory BPE requires bpe_design() and bpe_validate_design()."
-    ),
-    package = "spliv"
-  )
-
+.estimate_gamma_zero_first_stage <- function(data,
+                                             y_name,
+                                             z_names,
+                                             controls = character(0),
+                                             subset,
+                                             fe = NULL) {
   if (inherits(subset, "spliv_bpe_design")) {
     idx <- bpe_eval_subset(subset, data = data)
   } else {
@@ -677,24 +611,7 @@ estimate_gamma_zero_first_stage <- function(data,
   list(mu = mu, Omega = Omega, inst_names = inst_names)
 }
 
-#' Embed Prior into Full Instrument Space
-#'
-#' Expands a prior estimated on a subset of instruments into the full instrument
-#' vector implied by `y ~ X | Z`.
-#'
-#' @param formula IV formula `y ~ X | Z`.
-#' @param data Data frame.
-#' @param z_names Instrument names with prior moments.
-#' @param mu_hat Prior means for `z_names`.
-#' @param omega_hat Prior covariance for `z_names`.
-#'
-#' @return List with full-length `mu`, `Omega`, and instrument names.
-#' @examples
-#' d <- data.frame(y = rnorm(30), x = rnorm(30), z1 = rnorm(30), z2 = rnorm(30))
-#' embed_prior_into_full_Z(y ~ x | z1 + z2, d,
-#'   z_names = "z1", mu_hat = 0, omega_hat = matrix(0.1, 1, 1))
-#' @export
-embed_prior_into_full_Z <- function(formula, data, z_names, mu_hat, omega_hat) {
+.embed_prior_into_full_Z <- function(formula, data, z_names, mu_hat, omega_hat) {
   parsed <- .iv_parse(formula, data)
   .embed_prior_by_names(parsed$inst_names, z_names, mu_hat, omega_hat)
 }

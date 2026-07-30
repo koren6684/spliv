@@ -13,6 +13,7 @@ confirmatory BPE diagnostics.
 \seealso{
 Useful links:
 \itemize{
+  \item \url{https://koren6684.github.io/spliv/}
   \item \url{https://github.com/koren6684/spliv}
   \item Report bugs at \url{https://github.com/koren6684/spliv/issues}
 }

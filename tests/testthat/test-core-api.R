@@ -2,7 +2,7 @@ test_that("formula parser and instrument names work", {
   d <- make_synth_panel(n_gid = 10, n_t = 10, seed = 11)
   f <- y ~ x + w1 + w2 | z + w1 + w2
 
-  nms <- iv_inst_names(f, d)
+  nms <- spliv:::.iv_inst_names(f, d)
   expect_true("z" %in% nms)
   expect_true("(Intercept)" %in% nms)
 })
@@ -11,9 +11,9 @@ test_that("LTZ and UCI wrappers run on synthetic data", {
   d <- make_synth_panel(n_gid = 20, n_t = 20, seed = 2)
   f <- y ~ x + w1 + w2 | z + w1 + w2
 
-  prior <- conley_prior_ltz(f, d, inst_vary = "z", mean = 0, sd = 0.2)
+  prior <- sp_prior_ltz(f, d, inst_vary = "z", mean = 0, sd = 0.2)
 
-  ltz <- conley_ltz(
+  ltz <- sp_ltz(
     f,
     d,
     omega = prior$omega,
@@ -23,7 +23,7 @@ test_that("LTZ and UCI wrappers run on synthetic data", {
   expect_true(is.data.frame(ltz))
   expect_true(all(c("term", "estimate", "conf.low", "conf.high") %in% names(ltz)))
 
-  uci <- conley_uci(
+  uci <- sp_uci(
     f,
     d,
     inst = "z",
@@ -63,7 +63,7 @@ test_that("main spliv API supports BPE path", {
     bpe_min_n_S = 100
   )
 
-  expect_s3_class(fit, "plausexog_fit")
+  expect_s3_class(fit, "spliv_fit")
   expect_true(is.list(fit$prior))
   expect_true(!is.null(fit$bpe_diagnostics$subset_size))
   expect_true("x" %in% fit$estimates$term)
@@ -78,10 +78,10 @@ test_that("plotting helpers accept fit object", {
     data = d,
     method = "ltz",
     vcov = "hc1",
-    prior = conley_prior_ltz(f, d, inst_vary = "z", sd = 0.1)
+    prior = sp_prior_ltz(f, d, inst_vary = "z", sd = 0.1)
   )
 
-  sens <- conley_sensitivity_ltz_normal(
+  sens <- sp_sensitivity_ltz_normal(
     fit,
     term = "x",
     inst_vary = "z",
@@ -109,7 +109,7 @@ test_that("plotting helpers accept fit object", {
     }
   }, add = TRUE)
 
-  expect_silent(plot_conley_sensitivity(fit))
+  expect_silent(plot(fit))
 
   path <- spliv_sensitivity_path(
     formula = f,
@@ -296,7 +296,7 @@ test_that("spliv still works without violation_pattern", {
     delta = 0.2
   )
 
-  expect_s3_class(fit, "plausexog_fit")
+  expect_s3_class(fit, "spliv_fit")
   expect_true(is.null(fit$violation_pattern))
   expect_equal(fit$grid$parameter, "gamma")
 })
@@ -784,7 +784,7 @@ test_that("raw bpe_spec subset requires explicit confirmatory metadata", {
     bpe_min_n_S = 100
   )
 
-  expect_s3_class(fit, "plausexog_fit")
+  expect_s3_class(fit, "spliv_fit")
 })
 
 test_that("confirmatory BPE fails when pre_specified is FALSE", {
@@ -1064,7 +1064,7 @@ test_that("confirmatory BPE works with fixed effects and clustered covariance", 
     scale_instrument = "residual_sd"
   )
 
-  expect_s3_class(fit, "plausexog_fit")
+  expect_s3_class(fit, "spliv_fit")
   expect_true(isTRUE(fit$bpe_diagnostics$eligibility_passed))
   expect_equal(length(fit$mu_used), ncol(fit$internals$Z))
   expect_equal(dim(fit$Omega_used), c(ncol(fit$internals$Z), ncol(fit$internals$Z)))
@@ -1136,7 +1136,7 @@ test_that("UCI delta defaults correspond to [-delta, +delta]", {
   d <- make_synth_panel(n_gid = 20, n_t = 20, seed = 23)
   f <- y ~ x + w1 + w2 | z + w1 + w2
 
-  default_path <- conley_sensitivity_uci_support(
+  default_path <- sp_sensitivity_uci_support(
     formula = f,
     data = d,
     term = "x",
@@ -1144,7 +1144,7 @@ test_that("UCI delta defaults correspond to [-delta, +delta]", {
     delta_grid = c(0.2, 0.4),
     scale_instrument = "none"
   )
-  explicit_path <- conley_sensitivity_uci_support(
+  explicit_path <- sp_sensitivity_uci_support(
     formula = f,
     data = d,
     term = "x",

@@ -10,24 +10,7 @@
   fe_df
 }
 
-#' Demean with fixest
-#'
-#' Demeans vectors/matrices by high-dimensional fixed effects using `fixest::demean`.
-#'
-#' @param y Outcome vector.
-#' @param X Regressor matrix.
-#' @param Z Instrument matrix.
-#' @param W Optional controls matrix.
-#' @param fe_fml One-sided FE formula.
-#' @param data Data frame aligned with the rows of `y`, `X`, `Z`, `W`.
-#'
-#' @return List with demeaned `y`, `X`, `Z`, `W`, and FE frame.
-#' @examples
-#' d <- data.frame(g = factor(rep(1:2, each = 3)))
-#' y <- 1:6; X <- matrix(rnorm(6), 6, 1); Z <- matrix(rnorm(6), 6, 1)
-#' demean_fixest(y, X, Z, fe_fml = ~ g, data = d)
-#' @export
-demean_fixest <- function(y, X, Z, W = NULL, fe_fml, data) {
+.demean_fixest <- function(y, X, Z, W = NULL, fe_fml, data) {
   fe_df <- .build_fe_frame(fe_fml, data)
   if (!requireNamespace("fixest", quietly = TRUE)) {
     stop("Package 'fixest' is required for fe_engine='fixest'.")
@@ -41,23 +24,7 @@ demean_fixest <- function(y, X, Z, W = NULL, fe_fml, data) {
   list(y = as.numeric(yd), X = Xd, Z = Zd, W = Wd, fe_df = fe_df)
 }
 
-#' Demean with lfe
-#'
-#' Demeans vectors/matrices by high-dimensional fixed effects using `lfe::demeanlist`.
-#'
-#' @param y Outcome vector.
-#' @param X Regressor matrix.
-#' @param Z Instrument matrix.
-#' @param W Optional controls matrix.
-#' @param fe_list List/data.frame of FE ids.
-#'
-#' @return List with demeaned `y`, `X`, `Z`, `W`.
-#' @examples
-#' d <- data.frame(g = factor(rep(1:2, each = 3)))
-#' y <- 1:6; X <- matrix(rnorm(6), 6, 1); Z <- matrix(rnorm(6), 6, 1)
-#' demean_lfe(y, X, Z, fe_list = d["g"])
-#' @export
-demean_lfe <- function(y, X, Z, W = NULL, fe_list) {
+.demean_lfe <- function(y, X, Z, W = NULL, fe_list) {
   if (!requireNamespace("lfe", quietly = TRUE)) {
     stop("Package 'lfe' is required for fe_engine='lfe'.")
   }

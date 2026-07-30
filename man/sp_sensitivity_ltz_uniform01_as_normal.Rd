@@ -2,7 +2,6 @@
 % Please edit documentation in R/plotting.R
 \name{sp_sensitivity_ltz_uniform01_as_normal}
 \alias{sp_sensitivity_ltz_uniform01_as_normal}
-\alias{conley_sensitivity_ltz_uniform01_as_normal}
 \title{LTZ Sensitivity with Normal Approximation to U(0, delta)}
 \usage{
 sp_sensitivity_ltz_uniform01_as_normal(
@@ -16,21 +15,9 @@ sp_sensitivity_ltz_uniform01_as_normal(
   cluster = NULL,
   scale_instrument = c("residual_sd", "none")
 )
-
-conley_sensitivity_ltz_uniform01_as_normal(
-  formula,
-  data = NULL,
-  term,
-  inst_vary,
-  delta_grid,
-  level = 0.95,
-  vcov = c("hc1", "hc0", "iid", "cluster"),
-  cluster = NULL,
-  scale_instrument = c("residual_sd", "none")
-)
 }
 \arguments{
-\item{formula}{Formula or \code{plausexog_fit}.}
+\item{formula}{Formula or \code{spliv_fit}.}
 
 \item{data}{Data frame when \code{formula} is a formula.}
 
