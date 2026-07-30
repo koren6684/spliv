@@ -71,27 +71,19 @@
 <h2 id="a-small-synthetic-example">A small synthetic example<a class="anchor" aria-label="anchor" href="#a-small-synthetic-example"></a>
 </h2>
 <p>The examples below are self-contained and use no empirical or restricted data.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">library</span>(spliv)</span>
-<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a></span>
-<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
-<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">240</span></span>
-<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>z <span class="do">## A small synthetic example</span></span>
-<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a></span>
-<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>The examples below are self<span class="sc">-</span>contained and use no empirical data.</span>
-<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a></span>
-<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="st">```</span><span class="at">r</span></span>
-<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="at">library(spliv)</span></span>
-<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a></span>
-<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="at">set.seed(42)</span></span>
-<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a><span class="at">n &lt;- 240</span></span>
-<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a><span class="at">z &lt;- rnorm(n)</span></span>
-<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a><span class="at">w &lt;- rnorm(n)</span></span>
-<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a><span class="at">inactive &lt;- seq_len(n) &lt;= n / 2</span></span>
-<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="at">x &lt;- ifelse(inactive, 0, 1) * z + 0.4 * w + rnorm(n)</span></span>
-<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a><span class="at">y &lt;- 1.2 * x + 0.25 * w + 0.15 * z + rnorm(n)</span></span>
-<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a></span>
-<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a><span class="at">d &lt;- data.frame(y, x, z, w, inactive)</span></span>
-<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a><span class="at">f &lt;- y ~ x + w | z + w</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://koren6684.github.io/spliv/">spliv</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
+<span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">240</span></span>
+<span><span class="va">z</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">w</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">inactive</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span> <span class="op">&lt;=</span> <span class="va">n</span> <span class="op">/</span> <span class="fl">2</span></span>
+<span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">inactive</span>, <span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span> <span class="op">*</span> <span class="va">z</span> <span class="op">+</span> <span class="fl">0.4</span> <span class="op">*</span> <span class="va">w</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fl">1.2</span> <span class="op">*</span> <span class="va">x</span> <span class="op">+</span> <span class="fl">0.25</span> <span class="op">*</span> <span class="va">w</span> <span class="op">+</span> <span class="fl">0.15</span> <span class="op">*</span> <span class="va">z</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">y</span>, <span class="va">x</span>, <span class="va">z</span>, <span class="va">w</span>, <span class="va">inactive</span><span class="op">)</span></span>
+<span><span class="va">f</span> <span class="op">&lt;-</span> <span class="va">y</span> <span class="op">~</span> <span class="va">x</span> <span class="op">+</span> <span class="va">w</span> <span class="op">|</span> <span class="va">z</span> <span class="op">+</span> <span class="va">w</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="baseline-iv-estimate">Baseline IV estimate<a class="anchor" aria-label="anchor" href="#baseline-iv-estimate"></a>
 </h3>
