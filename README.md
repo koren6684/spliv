@@ -34,15 +34,6 @@ library(spliv)
 
 set.seed(42)
 n <- 240
-z ## A small synthetic example
-
-The examples below are self-contained and use no empirical data.
-
-```r
-library(spliv)
-
-set.seed(42)
-n <- 240
 z <- rnorm(n)
 w <- rnorm(n)
 inactive <- seq_len(n) <= n / 2
