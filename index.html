@@ -71,39 +71,63 @@
 <h2 id="a-small-synthetic-example">A small synthetic example<a class="anchor" aria-label="anchor" href="#a-small-synthetic-example"></a>
 </h2>
 <p>The examples below are self-contained and use no empirical or restricted data.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://koren6684.github.io/spliv/">spliv</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
-<span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">240</span></span>
-<span><span class="va">z</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
-<span><span class="va">w</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
-<span><span class="va">inactive</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span> <span class="op">&lt;=</span> <span class="va">n</span> <span class="op">/</span> <span class="fl">2</span></span>
-<span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">inactive</span>, <span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span> <span class="op">*</span> <span class="va">z</span> <span class="op">+</span> <span class="fl">0.4</span> <span class="op">*</span> <span class="va">w</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
-<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fl">1.2</span> <span class="op">*</span> <span class="va">x</span> <span class="op">+</span> <span class="fl">0.25</span> <span class="op">*</span> <span class="va">w</span> <span class="op">+</span> <span class="fl">0.15</span> <span class="op">*</span> <span class="va">z</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
-<span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">y</span>, <span class="va">x</span>, <span class="va">z</span>, <span class="va">w</span>, <span class="va">inactive</span><span class="op">)</span></span>
-<span><span class="va">f</span> <span class="op">&lt;-</span> <span class="va">y</span> <span class="op">~</span> <span class="va">x</span> <span class="op">+</span> <span class="va">w</span> <span class="op">|</span> <span class="va">z</span> <span class="op">+</span> <span class="va">w</span></span>
-<span></span>
-<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/spliv.html">spliv</a></span><span class="op">(</span><span class="va">f</span>, <span class="va">d</span>, method <span class="op">=</span> <span class="st">"ltz"</span>, delta <span class="op">=</span> <span class="fl">0</span>, vcov <span class="op">=</span> <span class="st">"hc1"</span><span class="op">)</span></span>
-<span><span class="va">fit</span><span class="op">$</span><span class="va">estimates</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="uniform-uci">Uniform UCI<a class="anchor" aria-label="anchor" href="#uniform-uci"></a>
-</h2>
-<p>Uniform UCI varies an excluded instrument’s direct effect over a bounded interval:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">library</span>(spliv)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">240</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>z <span class="do">## A small synthetic example</span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>The examples below are self<span class="sc">-</span>contained and use no empirical data.</span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="st">```</span><span class="at">r</span></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="at">library(spliv)</span></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a></span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="at">set.seed(42)</span></span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a><span class="at">n &lt;- 240</span></span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a><span class="at">z &lt;- rnorm(n)</span></span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a><span class="at">w &lt;- rnorm(n)</span></span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a><span class="at">inactive &lt;- seq_len(n) &lt;= n / 2</span></span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="at">x &lt;- ifelse(inactive, 0, 1) * z + 0.4 * w + rnorm(n)</span></span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a><span class="at">y &lt;- 1.2 * x + 0.25 * w + 0.15 * z + rnorm(n)</span></span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a></span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a><span class="at">d &lt;- data.frame(y, x, z, w, inactive)</span></span>
+<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a><span class="at">f &lt;- y ~ x + w | z + w</span></span></code></pre></div>
+<div class="section level3">
+<h3 id="baseline-iv-estimate">Baseline IV estimate<a class="anchor" aria-label="anchor" href="#baseline-iv-estimate"></a>
+</h3>
+<p>Setting <code>delta = 0</code> reproduces the conventional IV confidence interval under strict exclusion.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">baseline</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/spliv.html">spliv</a></span><span class="op">(</span></span>
+<span>  <span class="va">f</span>,</span>
+<span>  <span class="va">d</span>,</span>
+<span>  method <span class="op">=</span> <span class="st">"uci"</span>,</span>
+<span>  delta <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  vcov <span class="op">=</span> <span class="st">"hc1"</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">baseline</span><span class="op">$</span><span class="va">estimates</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="uniform-uci-sensitivity">Uniform UCI sensitivity<a class="anchor" aria-label="anchor" href="#uniform-uci-sensitivity"></a>
+</h3>
+<p>Union-of-confidence-intervals (UCI) sensitivity allows the excluded instrument’s direct effect to vary over a bounded interval.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">uniform</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/spliv.html">spliv</a></span><span class="op">(</span></span>
-<span>  <span class="va">f</span>, <span class="va">d</span>, method <span class="op">=</span> <span class="st">"uci"</span>, delta <span class="op">=</span> <span class="fl">0.20</span>, vcov <span class="op">=</span> <span class="st">"hc1"</span>,</span>
+<span>  <span class="va">f</span>,</span>
+<span>  <span class="va">d</span>,</span>
+<span>  method <span class="op">=</span> <span class="st">"uci"</span>,</span>
+<span>  delta <span class="op">=</span> <span class="fl">0.20</span>,</span>
+<span>  vcov <span class="op">=</span> <span class="st">"hc1"</span>,</span>
 <span>  grid <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>steps <span class="op">=</span> <span class="fl">11</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
+<span></span>
 <span><span class="va">uniform</span><span class="op">$</span><span class="va">estimates</span></span></code></pre></div>
 </div>
-<div class="section level2">
-<h2 id="patterned-uciltz">Patterned UCI/LTZ<a class="anchor" aria-label="anchor" href="#patterned-uciltz"></a>
-</h2>
-<p>Use a theory-motivated <code><a href="reference/spliv_pattern.html">spliv_pattern()</a></code> when the plausible direct effect is expected to vary with an observed exposure:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="section level3">
+<h3 id="patterned-uci-and-ltz-sensitivity">Patterned UCI and LTZ sensitivity<a class="anchor" aria-label="anchor" href="#patterned-uci-and-ltz-sensitivity"></a>
+</h3>
+<p>Use a theory-motivated <code><a href="reference/spliv_pattern.html">spliv_pattern()</a></code> to allow the possible direct effect to vary with an observed exposure. The package supports both bounded UCI and local-to-zero (LTZ) sensitivity.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pattern</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/spliv_pattern.html">spliv_pattern</a></span><span class="op">(</span></span>
 <span>  name <span class="op">=</span> <span class="st">"Exposure pattern"</span>,</span>
 <span>  pattern <span class="op">=</span> <span class="op">~</span> <span class="va">w</span>,</span>
@@ -114,32 +138,50 @@
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">patterned_uci</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/spliv.html">spliv</a></span><span class="op">(</span></span>
-<span>  <span class="va">f</span>, <span class="va">d</span>, method <span class="op">=</span> <span class="st">"uci"</span>, delta <span class="op">=</span> <span class="fl">0.20</span>, vcov <span class="op">=</span> <span class="st">"hc1"</span>,</span>
-<span>  violation_pattern <span class="op">=</span> <span class="va">pattern</span>, grid <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>steps <span class="op">=</span> <span class="fl">11</span><span class="op">)</span></span>
+<span>  <span class="va">f</span>,</span>
+<span>  <span class="va">d</span>,</span>
+<span>  method <span class="op">=</span> <span class="st">"uci"</span>,</span>
+<span>  delta <span class="op">=</span> <span class="fl">0.20</span>,</span>
+<span>  vcov <span class="op">=</span> <span class="st">"hc1"</span>,</span>
+<span>  violation_pattern <span class="op">=</span> <span class="va">pattern</span>,</span>
+<span>  grid <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>steps <span class="op">=</span> <span class="fl">11</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
+<span></span>
 <span><span class="va">patterned_ltz</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/spliv.html">spliv</a></span><span class="op">(</span></span>
-<span>  <span class="va">f</span>, <span class="va">d</span>, method <span class="op">=</span> <span class="st">"ltz"</span>, delta <span class="op">=</span> <span class="fl">0.20</span>, vcov <span class="op">=</span> <span class="st">"hc1"</span>,</span>
+<span>  <span class="va">f</span>,</span>
+<span>  <span class="va">d</span>,</span>
+<span>  method <span class="op">=</span> <span class="st">"ltz"</span>,</span>
+<span>  delta <span class="op">=</span> <span class="fl">0.20</span>,</span>
+<span>  vcov <span class="op">=</span> <span class="st">"hc1"</span>,</span>
 <span>  violation_pattern <span class="op">=</span> <span class="va">pattern</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="sensitivity-paths-and-tipping-points">Sensitivity paths and tipping points<a class="anchor" aria-label="anchor" href="#sensitivity-paths-and-tipping-points"></a>
-</h2>
-<p>Trace a pre-specified grid and report the first grid value at which an interval contains zero:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/spliv_sensitivity_path.html">spliv_sensitivity_path</a></span><span class="op">(</span></span>
-<span>  <span class="va">f</span>, <span class="va">d</span>, method <span class="op">=</span> <span class="st">"uci"</span>, delta_grid <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.30</span>, by <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span>,</span>
-<span>  vcov <span class="op">=</span> <span class="st">"hc1"</span>, violation_pattern <span class="op">=</span> <span class="va">pattern</span></span>
 <span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">patterned_uci</span><span class="op">$</span><span class="va">estimates</span></span>
+<span><span class="va">patterned_ltz</span><span class="op">$</span><span class="va">estimates</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="sensitivity-paths-and-tipping-points">Sensitivity paths and tipping points<a class="anchor" aria-label="anchor" href="#sensitivity-paths-and-tipping-points"></a>
+</h3>
+<p>Sensitivity paths report how the estimated interval changes over a pre-specified range of direct-effect magnitudes. The tipping point is the first value on the supplied grid at which the interval includes zero.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/spliv_sensitivity_path.html">spliv_sensitivity_path</a></span><span class="op">(</span></span>
+<span>  <span class="va">f</span>,</span>
+<span>  <span class="va">d</span>,</span>
+<span>  method <span class="op">=</span> <span class="st">"uci"</span>,</span>
+<span>  delta_grid <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.30</span>, by <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span>,</span>
+<span>  vcov <span class="op">=</span> <span class="st">"hc1"</span>,</span>
+<span>  violation_pattern <span class="op">=</span> <span class="va">pattern</span></span>
+<span><span class="op">)</span></span>
+<span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">path</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/spliv_tipping_point.html">spliv_tipping_point</a></span><span class="op">(</span><span class="va">path</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">path</span>, term <span class="op">=</span> <span class="st">"x"</span><span class="op">)</span></span></code></pre></div>
 </div>
-<div class="section level2">
-<h2 id="confirmatory-bpe">Confirmatory BPE<a class="anchor" aria-label="anchor" href="#confirmatory-bpe"></a>
-</h2>
-<p>BPE starts with an outcome-independent, pre-specified design and validates it before estimation. The margin below is a scale-aware, synthetic illustrative choice; in substantive work, pre-specify it from the scientific design rather than tuning it after seeing whether BPE passes.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="section level3">
+<h3 id="confirmatory-bpe">Confirmatory BPE<a class="anchor" aria-label="anchor" href="#confirmatory-bpe"></a>
+</h3>
+<p>Confirmatory Beyond Plausibly Exogenous (BPE) analysis begins with a pre-specified, outcome-independent instrument-inactive subset. The package validates the proposed design and estimates the BPE model only when the eligibility diagnostics pass.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">design</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/bpe_design.html">bpe_design</a></span><span class="op">(</span></span>
 <span>  name <span class="op">=</span> <span class="st">"Theory-defined inactive subset"</span>,</span>
 <span>  subset <span class="op">=</span> <span class="op">~</span> <span class="va">inactive</span>,</span>
@@ -150,19 +192,39 @@
 <span>  transportability_rationale <span class="op">=</span> <span class="st">"The subset direct effect is informative for the target sample."</span></span>
 <span><span class="op">)</span></span>
 <span></span>
+<span><span class="co"># This is a scale-aware illustrative margin for the synthetic example. In a</span></span>
+<span><span class="co"># substantive analysis, pre-specify the margin from the scientific design; do</span></span>
+<span><span class="co"># not tune it to make BPE pass.</span></span>
 <span><span class="va">bpe_margin</span> <span class="op">&lt;-</span> <span class="fl">0.25</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">resid</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/lm.html" class="external-link">lm</a></span><span class="op">(</span><span class="va">x</span> <span class="op">~</span> <span class="va">w</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
 <span><span class="va">validation</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/bpe_validate_design.html">bpe_validate_design</a></span><span class="op">(</span></span>
-<span>  <span class="va">f</span>, <span class="va">d</span>, design <span class="op">=</span> <span class="va">design</span>, vcov <span class="op">=</span> <span class="st">"hc1"</span>,</span>
-<span>  bpe_min_n_S <span class="op">=</span> <span class="fl">40</span>, bpe_equiv_margin <span class="op">=</span> <span class="va">bpe_margin</span></span>
+<span>  <span class="va">f</span>,</span>
+<span>  <span class="va">d</span>,</span>
+<span>  design <span class="op">=</span> <span class="va">design</span>,</span>
+<span>  vcov <span class="op">=</span> <span class="st">"hc1"</span>,</span>
+<span>  bpe_min_n_S <span class="op">=</span> <span class="fl">40</span>,</span>
+<span>  bpe_equiv_margin <span class="op">=</span> <span class="va">bpe_margin</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">validation</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"n_S"</span>, <span class="st">"equivalence_passed"</span>, <span class="st">"eligibility_passed"</span><span class="op">)</span><span class="op">]</span></span>
+<span></span>
+<span><span class="va">validation</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>  <span class="st">"n_S"</span>,</span>
+<span>  <span class="st">"equivalence_passed"</span>,</span>
+<span>  <span class="st">"eligibility_passed"</span></span>
+<span><span class="op">)</span><span class="op">]</span></span>
 <span></span>
 <span><span class="va">bpe_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/spliv.html">spliv</a></span><span class="op">(</span></span>
-<span>  <span class="va">f</span>, <span class="va">d</span>, method <span class="op">=</span> <span class="st">"bpe"</span>, bpe_design <span class="op">=</span> <span class="va">design</span>,</span>
-<span>  vcov <span class="op">=</span> <span class="st">"hc1"</span>, bpe_min_n_S <span class="op">=</span> <span class="fl">40</span>, bpe_equiv_margin <span class="op">=</span> <span class="va">bpe_margin</span></span>
+<span>  <span class="va">f</span>,</span>
+<span>  <span class="va">d</span>,</span>
+<span>  method <span class="op">=</span> <span class="st">"bpe"</span>,</span>
+<span>  bpe_design <span class="op">=</span> <span class="va">design</span>,</span>
+<span>  vcov <span class="op">=</span> <span class="st">"hc1"</span>,</span>
+<span>  bpe_min_n_S <span class="op">=</span> <span class="fl">40</span>,</span>
+<span>  bpe_equiv_margin <span class="op">=</span> <span class="va">bpe_margin</span></span>
 <span><span class="op">)</span></span>
+<span></span>
 <span><span class="va">bpe_fit</span><span class="op">$</span><span class="va">estimates</span></span></code></pre></div>
 <p><code><a href="reference/bpe_explore_subsets.html">bpe_explore_subsets()</a></code> is an exploratory diagnostic. Searching across subgroups and reporting the first passing rule is <strong>not</strong> confirmatory BPE; confirmatory BPE requires a pre-specified <code><a href="reference/bpe_design.html">bpe_design()</a></code> with a substantive rationale and transportability statement.</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="advanced-low-level-interface">Advanced low-level interface<a class="anchor" aria-label="anchor" href="#advanced-low-level-interface"></a>
