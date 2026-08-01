@@ -36,24 +36,24 @@ set.seed(42)
 n <- 240
 z <- rnorm(n)
 w <- rnorm(n)
+exposure <- pnorm(w)
 inactive <- seq_len(n) <= n / 2
 x <- ifelse(inactive, 0, 1) * z + 0.4 * w + rnorm(n)
-y <- 1.2 * x + 0.25 * w + 0.15 * z + rnorm(n)
+y <- 1.2 * x + 0.25 * w + 0.15 * exposure * z + rnorm(n)
 
-d <- data.frame(y, x, z, w, inactive)
+d <- data.frame(y, x, z, w, exposure, inactive)
 f <- y ~ x + w | z + w
 ```
 
 ### Baseline IV estimate
 
-Setting `delta = 0` reproduces the conventional IV confidence interval under strict exclusion.
+With no method or bound supplied, `spliv()` uses UCI at `delta = 0` and
+reproduces the conventional IV confidence interval under strict exclusion.
 
 ```r
 baseline <- spliv(
   f,
   d,
-  method = "uci",
-  delta = 0,
   vcov = "hc1"
 )
 
@@ -62,7 +62,10 @@ baseline$estimates
 
 ### Uniform UCI sensitivity
 
-Union-of-confidence-intervals (UCI) sensitivity allows the excluded instrument’s direct effect to vary over a bounded interval.
+Union-of-confidence-intervals (UCI) sensitivity allows the excluded
+instrument's direct effect to vary over a bounded interval. On the default
+scale, `delta` is an outcome-unit direct effect for a one-residual-SD shift in
+the instrument.
 
 ```r
 uniform <- spliv(
@@ -84,9 +87,9 @@ Use a theory-motivated `spliv_pattern()` to allow the possible direct effect to 
 ```r
 pattern <- spliv_pattern(
   name = "Exposure pattern",
-  pattern = ~ w,
+  pattern = ~ exposure,
   rationale = "The alternative channel is expected to be stronger at higher exposure.",
-  variables_used = "w",
+  variables_used = "exposure",
   pattern_type = "theory_defined",
   normalize = "max_abs"
 )
@@ -135,7 +138,12 @@ plot(path, term = "x")
 
 ### Confirmatory BPE
 
-Confirmatory Beyond Plausibly Exogenous (BPE) analysis begins with a pre-specified, outcome-independent instrument-inactive subset. The package validates the proposed design and estimates the BPE model only when the eligibility diagnostics pass.
+Confirmatory Beyond Plausibly Exogenous (BPE) analysis begins with a
+pre-specified, outcome-independent instrument-inactive subset and an explicit
+transportability rationale. The package validates the proposed design and
+estimates the BPE model only when the eligibility diagnostics pass. The default
+`sampling` transport carries the estimated reduced-form sampling covariance;
+`conservative` adds a pre-specified covariance inflation.
 
 ```r
 design <- bpe_design(
@@ -148,10 +156,10 @@ design <- bpe_design(
   transportability_rationale = "The subset direct effect is informative for the target sample."
 )
 
-# This is a scale-aware illustrative margin for the synthetic example. In a
-# substantive analysis, pre-specify the margin from the scientific design; do
-# not tune it to make BPE pass.
-bpe_margin <- 0.25 * sd(resid(lm(x ~ w)))
+# This illustrative margin allows a first-stage effect of 0.25 residual
+# treatment SD per one-residual-SD instrument shift. In substantive work,
+# pre-specify the margin; do not tune it to make BPE pass.
+bpe_margin <- 0.25
 
 validation <- bpe_validate_design(
   f,

@@ -159,85 +159,6 @@
   )
 }
 
-.coerce_bpe_design <- function(bpe_design_arg, bpe_spec, parsed, data) {
-  bpe_spec <- bpe_spec %||% list()
-  if (!is.list(bpe_spec)) {
-    stop("`bpe_spec` must be a list.")
-  }
-
-  if (!is.null(bpe_spec$subset_rule)) {
-    stop(
-      paste(
-        "Confirmatory BPE no longer accepts `bpe_spec$subset_rule`.",
-        "Use `bpe_explore_subsets()` for exploratory work, then create a",
-        "theory-justified `bpe_design()` object for confirmatory estimation."
-      )
-    )
-  }
-  if (!is.null(bpe_spec$find_subset) || !is.null(bpe_spec$f_threshold)) {
-    stop(
-      "Deprecated exploratory subset-search controls are not accepted for confirmatory BPE. Use `bpe_design()` instead."
-    )
-  }
-
-  design_from_spec <- bpe_spec$design %||% NULL
-  raw_subset <- bpe_spec$subset %||% NULL
-
-  n_designs <- sum(!vapply(list(bpe_design_arg, design_from_spec, raw_subset), is.null, logical(1)))
-  if (n_designs > 1) {
-    stop(
-      "Confirmatory BPE requires exactly one declared design/subset source: ",
-      "`bpe_design`, `bpe_spec$design`, or `bpe_spec$subset`."
-    )
-  }
-
-  design_obj <- bpe_design_arg %||% design_from_spec
-  if (!is.null(design_obj)) {
-    if (!inherits(design_obj, "spliv_bpe_design")) {
-      stop("`bpe_design` and `bpe_spec$design` must inherit from class `spliv_bpe_design`.")
-    }
-    return(design_obj)
-  }
-
-  if (is.null(raw_subset)) {
-    stop(
-      paste(
-        "Confirmatory BPE requires a researcher-supplied `bpe_design()` object",
-        "or an explicit subset supplied through `bpe_spec$subset` together with",
-        "confirmatory metadata such as `rationale` and `pre_specified`."
-      )
-    )
-  }
-
-  if (is.logical(raw_subset) && length(raw_subset) == length(parsed$y)) {
-    full_subset <- rep(FALSE, nrow(data))
-    full_subset[parsed$keep] <- raw_subset
-    raw_subset <- full_subset
-  }
-
-  rationale <- bpe_spec$rationale %||% NULL
-  if (!is.character(rationale) || length(rationale) != 1 || !nzchar(trimws(rationale))) {
-    stop("Raw `bpe_spec$subset` requires a non-empty `rationale` for confirmatory BPE.")
-  }
-  if (is.null(bpe_spec$pre_specified)) {
-    stop("Raw `bpe_spec$subset` requires explicit `pre_specified = TRUE` for confirmatory BPE.")
-  }
-  if (!isTRUE(bpe_spec$pre_specified)) {
-    stop("Raw `bpe_spec$subset` requires `pre_specified = TRUE` for confirmatory BPE.")
-  }
-
-  bpe_design(
-    name = bpe_spec$name %||% "Researcher-supplied BPE subset",
-    subset = raw_subset,
-    rationale = rationale,
-    variables_used = bpe_spec$variables_used %||% NULL,
-    subset_type = bpe_spec$subset_type %||% NULL,
-    pre_specified = bpe_spec$pre_specified,
-    transportability_rationale = bpe_spec$transportability_rationale %||% NULL,
-    notes = bpe_spec$notes %||% NULL
-  )
-}
-
 .instrument_residual_sds <- function(X, Z, W, fe_present) {
   inst_names <- setdiff(colnames(Z), c(colnames(X), "(Intercept)"))
   if (length(inst_names) == 0) {
@@ -772,68 +693,69 @@ spliv_eval_pattern <- function(pattern, data) {
 #' Main estimator for patterned sensitivity analysis of exclusion violations in
 #' fixed-effect or residualized IV designs.
 #'
-#' @param formula IV formula `y ~ X | Z`.
+#' @param formula IV formula `y ~ X | Z`. Ordinary exogenous controls must
+#'   appear on both sides, for example `y ~ x + w | z + w`.
 #' @param data Data frame.
 #' @param fe Optional one-sided formula of fixed effects.
 #' @param fe_engine FE demeaning engine, one of `"fixest"` or `"lfe"`.
 #' @param vcov One of `"iid"`, `"hc1"`, or `"cluster"`.
 #' @param cluster Cluster ids or one-sided formula, required when `vcov = "cluster"`.
-#' @param method One of `"ltz"`, `"uci"`, or `"bpe"`.
+#' @param method One of `"uci"`, `"ltz"`, or `"bpe"`. The default is the
+#'   conventional UCI analysis.
 #' @param prior Optional prior list with `mu` and `Omega` (or `omega`) for LTZ.
 #'   When `violation_pattern` is supplied, patterned LTZ currently requires a
 #'   scalar prior over the pattern coefficient.
 #' @param delta Optional non-negative scalar sensitivity magnitude. With
-#'   `method = "uci"`, `delta` implies theta bounds `[-delta, +delta]` unless
-#'   explicit bounds are supplied in `grid`. With `method = "ltz"` and no
-#'   explicit `prior`, `delta` induces a zero-mean normal LTZ prior.
+#'   `scale_instrument = "residual_sd"`, delta is the direct outcome effect of
+#'   a one-residual-SD instrument shift. With `scale_instrument = "none"`, it
+#'   is the raw direct-effect coefficient. For UCI, delta supplies symmetric
+#'   bounds `[-delta, +delta]`; for LTZ without an explicit prior, it is the
+#'   standard deviation of a zero-mean normal direct-effect prior.
 #' @param violation_pattern Optional `spliv_pattern()` object describing how the
 #'   direct effect of the instrument may vary across observations. If omitted,
-#'   LTZ/UCI retain the package's backward-compatible uniform direct-effect
-#'   behavior. This argument is currently supported for LTZ and UCI, but not for
+#'   LTZ/UCI use the uniform direct-effect behavior. This argument is currently
+#'   supported for LTZ and UCI, but not for
 #'   confirmatory BPE.
-#' @param bpe Logical; when `TRUE`, learn prior moments from a confirmatory
-#'   `bpe_design()` and run LTZ.
-#' @param bpe_design Optional `bpe_design()` object for confirmatory BPE.
-#' @param bpe_spec Optional list. Prefer `bpe_spec = list(design = my_design)`.
-#'   For backward compatibility, `bpe_spec$subset` may also be supplied, but it
-#'   must represent an explicit researcher-supplied subset and should be paired
-#'   with a non-empty `rationale`, explicit `pre_specified = TRUE`, and any
-#'   relevant metadata such as `variables_used` or `subset_type`. Supply exactly
-#'   one confirmatory subset source: `bpe_design`, `bpe_spec$design`, or
-#'   `bpe_spec$subset`. Exploratory `subset_rule` inputs are not accepted for
-#'   confirmatory estimation.
+#' @param bpe_design A pre-specified `bpe_design()` object for confirmatory BPE.
+#'   A non-empty subset rationale and transportability rationale are required
+#'   when `method = "bpe"`.
 #' @param bpe_kappa Positive scalar multiplier applied to the confirmatory BPE
 #'   covariance after transport adjustment.
-#' @param bpe_omega Deprecated. Confirmatory BPE now uses the full reduced-form
-#'   covariance from the subset together with `bpe_transport`.
 #' @param bpe_min_n_S Minimum subset size required for BPE eligibility. Default
 #'   `2000`.
 #' @param bpe_min_clusters_S Minimum number of clusters required in subset `S`
 #'   when `vcov = "cluster"`. Default `30`.
-#' @param bpe_max_F_S Deprecated. The first-stage F-statistic is reported for
-#'   diagnostics only and no longer determines confirmatory BPE eligibility.
 #' @param bpe_min_varZ_S Minimum residualized instrument variance required in
 #'   subset `S`. Default `1e-6`.
 #' @param bpe_equiv_margin Researcher-specified first-stage equivalence margin.
-#'   Confirmatory BPE currently supports exactly one instrument.
+#'   With `scale_instrument = "residual_sd"`, the margin is measured in
+#'   residual treatment standard deviations per one-residual-SD instrument
+#'   shift. With `scale_instrument = "none"`, it is on the raw first-stage
+#'   coefficient scale. Confirmatory BPE currently supports one treatment and
+#'   one instrument.
 #' @param bpe_equiv_level Confidence level for the first-stage equivalence check.
-#' @param bpe_transport One of `"none"`, `"sampling"`, or `"conservative"`.
+#' @param bpe_transport One of `"sampling"` or `"conservative"`. Sampling uses
+#'   the estimated reduced-form sampling covariance; conservative adds the
+#'   inflation controlled by `bpe_transport_kappa`.
 #' @param bpe_transport_kappa Non-negative scalar controlling the conservative
 #'   transport covariance inflation.
 #' @param bpe_not_applicable Behavior when subset diagnostics fail. One of `"na"`
 #'   (default) to return NA estimates, or `"error"` to stop.
 #' @param scale_instrument One of `"residual_sd"` (default) or `"none"`.
 #' @param grid List controlling UCI bounds or other tuning parameters. For
-#'   backward-compatible scalar UCI, if `grid$delta` is supplied and
+#'   scalar UCI, if `grid$delta` is supplied and
 #'   `grid$gmin`/`grid$gmax` are omitted, the package interprets `delta` as a
 #'   direct-effect bound of `[-delta, +delta]` under the chosen
 #'   `scale_instrument`. When `violation_pattern` is supplied, `grid$delta`
 #'   instead refers to theta bounds over the pattern-scaled direct effect.
-#' @param ... Reserved.
 #'
 #' @return Object of class `spliv_fit`.
 #'
 #' @details
+#' UCI is the union of conventional IV confidence intervals over the specified
+#' direct-effect bounds. LTZ propagates a local-to-zero prior mean and covariance
+#' for the direct effect into the IV estimate and uncertainty.
+#'
 #' `spliv` implements patterned sensitivity analysis for exclusion violations in
 #' IV designs with fixed effects or other residualization steps. Researchers can
 #' supply a theoretically motivated `spliv_pattern()` object to specify where
@@ -853,7 +775,8 @@ spliv_eval_pattern <- function(pattern, data) {
 #'
 #' Confirmatory BPE is not a subgroup-search procedure. The researcher must
 #' supply a pre-specified `bpe_design()` object, the package validates that
-#' subset, and BPE proceeds only if the confirmatory eligibility checks pass.
+#' subset, documents why its direct effect is transportable to the target
+#' sample, and BPE proceeds only if the confirmatory eligibility checks pass.
 #'
 #' The first-stage F-statistic is still reported for diagnostics, but
 #' confirmatory BPE eligibility is determined by the pre-specification checks,
@@ -867,7 +790,7 @@ spliv_eval_pattern <- function(pattern, data) {
 #' @examples
 #' set.seed(1)
 #' d <- data.frame(y = rnorm(60), x = rnorm(60), z = rnorm(60), w = rnorm(60))
-#' fit <- spliv(y ~ x + w | z + w, d, method = "uci", delta = 0.1)
+#' fit <- spliv(y ~ x + w | z + w, d)
 #' fit$estimates
 #' @export
 spliv <- function(formula,
@@ -876,27 +799,27 @@ spliv <- function(formula,
                   fe_engine = c("fixest", "lfe"),
                   vcov = c("iid", "hc1", "cluster"),
                   cluster = NULL,
-                  method = c("ltz", "uci", "bpe"),
+                  method = c("uci", "ltz", "bpe"),
                   prior = NULL,
                   delta = NULL,
                   violation_pattern = NULL,
-                  bpe = FALSE,
                   bpe_design = NULL,
-                  bpe_spec = list(design = NULL, subset = NULL, z_names = NULL),
                   bpe_kappa = 1,
-                  bpe_omega = NULL,
                   bpe_min_n_S = 2000,
                   bpe_min_clusters_S = 30,
-                  bpe_max_F_S = NULL,
                   bpe_min_varZ_S = 1e-6,
                   bpe_equiv_margin = NULL,
                   bpe_equiv_level = 0.95,
-                  bpe_transport = c("sampling", "none", "conservative"),
+                  bpe_transport = c("sampling", "conservative"),
                   bpe_transport_kappa = 0,
                   bpe_not_applicable = c("na", "error"),
                   scale_instrument = c("residual_sd", "none"),
-                  grid = list(),
-                  ...) {
+                  grid = list()) {
+  method <- if (missing(method)) {
+    "uci"
+  } else {
+    match.arg(tolower(method), c("uci", "ltz", "bpe"))
+  }
   .spliv_impl(
     formula = formula,
     data = data,
@@ -908,14 +831,10 @@ spliv <- function(formula,
     prior = prior,
     delta = delta,
     violation_pattern = violation_pattern,
-    bpe = bpe,
     bpe_design = bpe_design,
-    bpe_spec = bpe_spec,
     bpe_kappa = bpe_kappa,
-    bpe_omega = bpe_omega,
     bpe_min_n_S = bpe_min_n_S,
     bpe_min_clusters_S = bpe_min_clusters_S,
-    bpe_max_F_S = bpe_max_F_S,
     bpe_min_varZ_S = bpe_min_varZ_S,
     bpe_equiv_margin = bpe_equiv_margin,
     bpe_equiv_level = bpe_equiv_level,
@@ -923,8 +842,7 @@ spliv <- function(formula,
     bpe_transport_kappa = bpe_transport_kappa,
     bpe_not_applicable = bpe_not_applicable,
     scale_instrument = scale_instrument,
-    grid = grid,
-    ...
+    grid = grid
   )
 }
 
@@ -934,39 +852,42 @@ spliv <- function(formula,
                         fe_engine = c("fixest", "lfe"),
                         vcov = c("iid", "hc1", "cluster"),
                         cluster = NULL,
-                        method = c("ltz", "uci", "bpe"),
+                        method = c("uci", "ltz", "bpe"),
                         prior = NULL,
                         delta = NULL,
                         violation_pattern = NULL,
-                        bpe = FALSE,
                         bpe_design = NULL,
-                        bpe_spec = list(design = NULL, subset = NULL, z_names = NULL),
                         bpe_kappa = 1,
-                        bpe_omega = NULL,
                         bpe_min_n_S = 2000,
                         bpe_min_clusters_S = 30,
-                        bpe_max_F_S = NULL,
                         bpe_min_varZ_S = 1e-6,
                         bpe_equiv_margin = NULL,
                         bpe_equiv_level = 0.95,
-                        bpe_transport = c("sampling", "none", "conservative"),
+                        bpe_transport = c("sampling", "conservative"),
                         bpe_transport_kappa = 0,
                         bpe_not_applicable = c("na", "error"),
                         scale_instrument = c("residual_sd", "none"),
-                        grid = list(),
-                        ...) {
+                        grid = list()) {
   fe_engine <- match.arg(fe_engine)
   vcov <- match.arg(tolower(vcov), c("iid", "hc1", "cluster"))
+  if (length(method) > 1L) {
+    method <- method[[1L]]
+  }
   method_out <- match.arg(tolower(method), c("ltz", "uci", "bpe"))
-  bpe_transport <- match.arg(tolower(bpe_transport), c("sampling", "none", "conservative"))
+  bpe_transport <- match.arg(tolower(bpe_transport), c("sampling", "conservative"))
   bpe_not_applicable <- match.arg(tolower(bpe_not_applicable), c("na", "error"))
   scale_instrument <- match.arg(scale_instrument)
 
   method_core <- if (identical(method_out, "bpe")) "ltz" else method_out
-  bpe_requested <- isTRUE(bpe) || identical(method_out, "bpe")
+  bpe_requested <- identical(method_out, "bpe")
+
+  if (identical(method_out, "uci") && is.null(delta) &&
+      is.null(grid$delta) && is.null(grid$gmin) && is.null(grid$gmax)) {
+    delta <- 0
+  }
 
   if (bpe_requested && !identical(method_core, "ltz")) {
-    stop("BPE is only available with LTZ (use method='bpe' or method='ltz', bpe=TRUE).")
+    stop("BPE is only available with `method = \"bpe\"`.")
   }
 
   extra_vars <- unique(c(all.vars(fe), all.vars(cluster)))
@@ -1044,31 +965,16 @@ spliv <- function(formula,
     warn_msgs <- c(warn_msgs, violation_pattern_state$warnings %||% character(0))
   }
 
-  if (!is.null(bpe_omega)) {
-    warn_msgs <- c(
-      warn_msgs,
-      "`bpe_omega` is deprecated; confirmatory BPE now uses the full reduced-form covariance and `bpe_transport`."
-    )
-  }
-  if (!is.null(bpe_max_F_S)) {
-    warn_msgs <- c(
-      warn_msgs,
-      "`bpe_max_F_S` is deprecated; the first-stage F-statistic is now reported for diagnostics only and does not determine confirmatory BPE eligibility."
-    )
-  }
-
   if (bpe_requested) {
     if (!is.null(prior)) {
       warn_msgs <- c(warn_msgs, "`prior` was supplied but BPE was requested; using the confirmatory BPE-learned prior.")
     }
 
-    design_obj <- .coerce_bpe_design(
-      bpe_design_arg = bpe_design,
-      bpe_spec = bpe_spec,
-      parsed = parsed,
-      data = data
-    )
-    z_names <- bpe_spec$z_names %||% .default_uci_inst(X, Z)
+    if (!inherits(bpe_design, "spliv_bpe_design")) {
+      stop("`bpe_design` must be a `bpe_design()` object when `method = \"bpe\"`.")
+    }
+    design_obj <- bpe_design
+    z_names <- .default_uci_inst(X, Z)
 
     validation <- bpe_validate_design(
       formula = formula,
@@ -1141,7 +1047,7 @@ spliv <- function(formula,
   if (method_core == "ltz") {
     if (!is.null(violation_pattern_state)) {
       theta_prior <- .coerce_pattern_ltz_prior(prior = prior, delta = delta)
-      ltz <- sp_ltz_mats(
+      ltz <- .sp_ltz_mats(
         y = y,
         X = X,
         Z = Z,
@@ -1214,7 +1120,7 @@ spliv <- function(formula,
       )
     }
     if (is.null(prior)) {
-      stop("LTZ requires `prior`, or request BPE via method='bpe' / bpe=TRUE with a confirmatory `bpe_design()`.")
+      stop("LTZ requires `prior`, or request BPE via `method = \"bpe\"` with a confirmatory `bpe_design()`.")
     }
 
     mu <- prior$mu %||% prior$mu_hat
@@ -1223,7 +1129,7 @@ spliv <- function(formula,
       stop("`prior` must include mu and Omega (or omega).")
     }
 
-    ltz <- sp_ltz_mats(
+    ltz <- .sp_ltz_mats(
       y = y,
       X = X,
       Z = Z,
@@ -1307,7 +1213,7 @@ spliv <- function(formula,
     }
 
     gamma_grid <- .make_gamma_grid(gmin = as.numeric(gmin), gmax = as.numeric(gmax), steps = as.integer(steps))
-    uci <- sp_uci_mats(
+    uci <- .sp_uci_mats(
       y = y,
       X = X,
       Z = Z,
@@ -1402,7 +1308,7 @@ spliv <- function(formula,
   if (length(gmax) == 1) gmax <- rep(gmax, p)
 
   gamma_grid <- .make_gamma_grid(gmin = gmin, gmax = gmax, steps = steps)
-  uci <- sp_uci_mats(
+  uci <- .sp_uci_mats(
     y = y,
     X = X,
     Z = Z,

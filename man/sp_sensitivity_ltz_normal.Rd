@@ -47,3 +47,9 @@ Data frame with sensitivity path.
 \description{
 LTZ Sensitivity over Delta Grid
 }
+\examples{
+set.seed(10)
+d <- data.frame(y = rnorm(60), x = rnorm(60), z = rnorm(60))
+sp_sensitivity_ltz_normal(y ~ x | z, d, term = "x", inst_vary = "z",
+  delta_grid = c(0, 0.1), scale_instrument = "none")
+}

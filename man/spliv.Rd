@@ -11,31 +11,27 @@ spliv(
   fe_engine = c("fixest", "lfe"),
   vcov = c("iid", "hc1", "cluster"),
   cluster = NULL,
-  method = c("ltz", "uci", "bpe"),
+  method = c("uci", "ltz", "bpe"),
   prior = NULL,
   delta = NULL,
   violation_pattern = NULL,
-  bpe = FALSE,
   bpe_design = NULL,
-  bpe_spec = list(design = NULL, subset = NULL, z_names = NULL),
   bpe_kappa = 1,
-  bpe_omega = NULL,
   bpe_min_n_S = 2000,
   bpe_min_clusters_S = 30,
-  bpe_max_F_S = NULL,
   bpe_min_varZ_S = 1e-06,
   bpe_equiv_margin = NULL,
   bpe_equiv_level = 0.95,
-  bpe_transport = c("sampling", "none", "conservative"),
+  bpe_transport = c("sampling", "conservative"),
   bpe_transport_kappa = 0,
   bpe_not_applicable = c("na", "error"),
   scale_instrument = c("residual_sd", "none"),
-  grid = list(),
-  ...
+  grid = list()
 )
 }
 \arguments{
-\item{formula}{IV formula \code{y ~ X | Z}.}
+\item{formula}{IV formula \code{y ~ X | Z}. Ordinary exogenous controls must
+appear on both sides, for example \code{y ~ x + w | z + w}.}
 
 \item{data}{Data frame.}
 
@@ -47,42 +43,32 @@ spliv(
 
 \item{cluster}{Cluster ids or one-sided formula, required when \code{vcov = "cluster"}.}
 
-\item{method}{One of \code{"ltz"}, \code{"uci"}, or \code{"bpe"}.}
+\item{method}{One of \code{"uci"}, \code{"ltz"}, or \code{"bpe"}. The default is the
+conventional UCI analysis.}
 
 \item{prior}{Optional prior list with \code{mu} and \code{Omega} (or \code{omega}) for LTZ.
 When \code{violation_pattern} is supplied, patterned LTZ currently requires a
 scalar prior over the pattern coefficient.}
 
 \item{delta}{Optional non-negative scalar sensitivity magnitude. With
-\code{method = "uci"}, \code{delta} implies theta bounds \verb{[-delta, +delta]} unless
-explicit bounds are supplied in \code{grid}. With \code{method = "ltz"} and no
-explicit \code{prior}, \code{delta} induces a zero-mean normal LTZ prior.}
+\code{scale_instrument = "residual_sd"}, delta is the direct outcome effect of
+a one-residual-SD instrument shift. With \code{scale_instrument = "none"}, it
+is the raw direct-effect coefficient. For UCI, delta supplies symmetric
+bounds \verb{[-delta, +delta]}; for LTZ without an explicit prior, it is the
+standard deviation of a zero-mean normal direct-effect prior.}
 
 \item{violation_pattern}{Optional \code{spliv_pattern()} object describing how the
 direct effect of the instrument may vary across observations. If omitted,
-LTZ/UCI retain the package's backward-compatible uniform direct-effect
-behavior. This argument is currently supported for LTZ and UCI, but not for
+LTZ/UCI use the uniform direct-effect behavior. This argument is currently
+supported for LTZ and UCI, but not for
 confirmatory BPE.}
 
-\item{bpe}{Logical; when \code{TRUE}, learn prior moments from a confirmatory
-\code{bpe_design()} and run LTZ.}
-
-\item{bpe_design}{Optional \code{bpe_design()} object for confirmatory BPE.}
-
-\item{bpe_spec}{Optional list. Prefer \code{bpe_spec = list(design = my_design)}.
-For backward compatibility, \code{bpe_spec$subset} may also be supplied, but it
-must represent an explicit researcher-supplied subset and should be paired
-with a non-empty \code{rationale}, explicit \code{pre_specified = TRUE}, and any
-relevant metadata such as \code{variables_used} or \code{subset_type}. Supply exactly
-one confirmatory subset source: \code{bpe_design}, \code{bpe_spec$design}, or
-\code{bpe_spec$subset}. Exploratory \code{subset_rule} inputs are not accepted for
-confirmatory estimation.}
+\item{bpe_design}{A pre-specified \code{bpe_design()} object for confirmatory BPE.
+A non-empty subset rationale and transportability rationale are required
+when \code{method = "bpe"}.}
 
 \item{bpe_kappa}{Positive scalar multiplier applied to the confirmatory BPE
 covariance after transport adjustment.}
-
-\item{bpe_omega}{Deprecated. Confirmatory BPE now uses the full reduced-form
-covariance from the subset together with \code{bpe_transport}.}
 
 \item{bpe_min_n_S}{Minimum subset size required for BPE eligibility. Default
 \code{2000}.}
@@ -90,18 +76,21 @@ covariance from the subset together with \code{bpe_transport}.}
 \item{bpe_min_clusters_S}{Minimum number of clusters required in subset \code{S}
 when \code{vcov = "cluster"}. Default \code{30}.}
 
-\item{bpe_max_F_S}{Deprecated. The first-stage F-statistic is reported for
-diagnostics only and no longer determines confirmatory BPE eligibility.}
-
 \item{bpe_min_varZ_S}{Minimum residualized instrument variance required in
 subset \code{S}. Default \code{1e-6}.}
 
 \item{bpe_equiv_margin}{Researcher-specified first-stage equivalence margin.
-Confirmatory BPE currently supports exactly one instrument.}
+With \code{scale_instrument = "residual_sd"}, the margin is measured in
+residual treatment standard deviations per one-residual-SD instrument
+shift. With \code{scale_instrument = "none"}, it is on the raw first-stage
+coefficient scale. Confirmatory BPE currently supports one treatment and
+one instrument.}
 
 \item{bpe_equiv_level}{Confidence level for the first-stage equivalence check.}
 
-\item{bpe_transport}{One of \code{"none"}, \code{"sampling"}, or \code{"conservative"}.}
+\item{bpe_transport}{One of \code{"sampling"} or \code{"conservative"}. Sampling uses
+the estimated reduced-form sampling covariance; conservative adds the
+inflation controlled by \code{bpe_transport_kappa}.}
 
 \item{bpe_transport_kappa}{Non-negative scalar controlling the conservative
 transport covariance inflation.}
@@ -112,13 +101,11 @@ transport covariance inflation.}
 \item{scale_instrument}{One of \code{"residual_sd"} (default) or \code{"none"}.}
 
 \item{grid}{List controlling UCI bounds or other tuning parameters. For
-backward-compatible scalar UCI, if \code{grid$delta} is supplied and
+scalar UCI, if \code{grid$delta} is supplied and
 \code{grid$gmin}/\code{grid$gmax} are omitted, the package interprets \code{delta} as a
 direct-effect bound of \verb{[-delta, +delta]} under the chosen
 \code{scale_instrument}. When \code{violation_pattern} is supplied, \code{grid$delta}
 instead refers to theta bounds over the pattern-scaled direct effect.}
-
-\item{...}{Reserved.}
 }
 \value{
 Object of class \code{spliv_fit}.
@@ -128,6 +115,10 @@ Main estimator for patterned sensitivity analysis of exclusion violations in
 fixed-effect or residualized IV designs.
 }
 \details{
+UCI is the union of conventional IV confidence intervals over the specified
+direct-effect bounds. LTZ propagates a local-to-zero prior mean and covariance
+for the direct effect into the IV estimate and uncertainty.
+
 \code{spliv} implements patterned sensitivity analysis for exclusion violations in
 IV designs with fixed effects or other residualization steps. Researchers can
 supply a theoretically motivated \code{spliv_pattern()} object to specify where
@@ -147,7 +138,8 @@ excluded instrument, and one researcher-specified pattern at a time.
 
 Confirmatory BPE is not a subgroup-search procedure. The researcher must
 supply a pre-specified \code{bpe_design()} object, the package validates that
-subset, and BPE proceeds only if the confirmatory eligibility checks pass.
+subset, documents why its direct effect is transportable to the target
+sample, and BPE proceeds only if the confirmatory eligibility checks pass.
 
 The first-stage F-statistic is still reported for diagnostics, but
 confirmatory BPE eligibility is determined by the pre-specification checks,
@@ -160,6 +152,6 @@ optionally be inflated via \code{bpe_transport}.
 \examples{
 set.seed(1)
 d <- data.frame(y = rnorm(60), x = rnorm(60), z = rnorm(60), w = rnorm(60))
-fit <- spliv(y ~ x + w | z + w, d, method = "uci", delta = 0.1)
+fit <- spliv(y ~ x + w | z + w, d)
 fit$estimates
 }

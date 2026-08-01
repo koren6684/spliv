@@ -117,6 +117,11 @@ sp_prior_ltz <- function(formula, data = NULL,
 #' @param scale_instrument One of `"residual_sd"` (default) or `"none"`.
 #'
 #' @return Data frame with sensitivity path.
+#' @examples
+#' set.seed(10)
+#' d <- data.frame(y = rnorm(60), x = rnorm(60), z = rnorm(60))
+#' sp_sensitivity_ltz_normal(y ~ x | z, d, term = "x", inst_vary = "z",
+#'   delta_grid = c(0, 0.1), scale_instrument = "none")
 #' @export
 sp_sensitivity_ltz_normal <- function(formula, data = NULL,
                                           term,
@@ -163,7 +168,7 @@ sp_sensitivity_ltz_normal <- function(formula, data = NULL,
       cluster = cluster
     )
 
-    ltz <- sp_ltz_mats(
+    ltz <- .sp_ltz_mats(
       y = inp$y,
       X = inp$X,
       Z = inp$Z,
@@ -207,6 +212,11 @@ sp_sensitivity_ltz_normal <- function(formula, data = NULL,
 #' @param scale_instrument One of `"residual_sd"` (default) or `"none"`.
 #'
 #' @return Data frame with sensitivity path.
+#' @examples
+#' set.seed(11)
+#' d <- data.frame(y = rnorm(60), x = rnorm(60), z = rnorm(60))
+#' sp_sensitivity_uci_support(y ~ x | z, d, term = "x", inst_vary = "z",
+#'   delta_grid = c(0, 0.1), grid = 5, scale_instrument = "none")
 #' @export
 sp_sensitivity_uci_support <- function(formula, data = NULL,
                                            term,
@@ -255,7 +265,7 @@ sp_sensitivity_uci_support <- function(formula, data = NULL,
     steps <- if (length(grid) == 1) rep(grid, p) else grid
 
     gamma_grid <- .make_gamma_grid(gmin = gmin, gmax = gmax, steps = steps)
-    ci <- sp_uci_mats(
+    ci <- .sp_uci_mats(
       y = inp$y,
       X = inp$X,
       Z = inp$Z,
@@ -287,6 +297,11 @@ sp_sensitivity_uci_support <- function(formula, data = NULL,
 #'
 #' @inheritParams sp_sensitivity_ltz_normal
 #' @return Data frame with sensitivity path.
+#' @examples
+#' set.seed(12)
+#' d <- data.frame(y = rnorm(60), x = rnorm(60), z = rnorm(60))
+#' sp_sensitivity_ltz_uniform01_as_normal(y ~ x | z, d, term = "x",
+#'   inst_vary = "z", delta_grid = c(0, 0.1), scale_instrument = "none")
 #' @export
 sp_sensitivity_ltz_uniform01_as_normal <- function(formula, data = NULL,
                                                        term, inst_vary, delta_grid,
@@ -335,9 +350,6 @@ sp_sensitivity_ltz_uniform01_as_normal <- function(formula, data = NULL,
 
   if (!is.null(dots$prior)) {
     stop("`spliv_sensitivity_path()` varies `delta` directly; do not supply `prior` in `...`.")
-  }
-  if (isTRUE(dots$bpe %||% FALSE)) {
-    stop("`spliv_sensitivity_path()` currently supports LTZ and UCI only; BPE is intentionally excluded.")
   }
   if (!is.null(dots$grid)) {
     if (!is.list(dots$grid)) {
@@ -557,7 +569,7 @@ sp_sensitivity_ltz_uniform01_as_normal <- function(formula, data = NULL,
 #' @param delta_grid Non-negative sensitivity grid. For UCI, each value `d`
 #'   implies theta bounds `[-d, +d]`.
 #' @param violation_pattern Optional `spliv_pattern()` object. If omitted, the
-#'   path uses the package's backward-compatible uniform direct-effect pattern.
+#'   path uses a uniform direct-effect pattern.
 #' @param stop_on_error Logical; if `TRUE` (default), stop on the first failed
 #'   fit. If `FALSE`, record `NA` rows and store the error message in the
 #'   returned `error` column.
@@ -752,9 +764,13 @@ spliv_tipping_point <- function(x) {
 #' Plot Patterned Sensitivity Output or a Fitted Object
 #'
 #' @param df_plot Data frame returned by a sensitivity helper or a `spliv_fit` object.
+#' @param term Optional term to plot when `df_plot` is a sensitivity-path
+#'   object. If omitted, the first term is plotted (with a warning for multiple
+#'   terms).
 #' @param ylab Y-axis label.
 #' @param main Plot title.
-#' @param ... Unused.
+#' @param ... Additional graphics arguments forwarded to the sensitivity-path
+#'   plotting method; ignored for fitted objects and ordinary data frames.
 #'
 #' @return Invisibly returns the plotted input.
 #' @examples
@@ -764,12 +780,14 @@ spliv_tipping_point <- function(x) {
 #' plot_sp_sensitivity(p, term = "x")
 #' @export
 plot_sp_sensitivity <- function(df_plot,
+                                    term = NULL,
                                     ylab = "Effect (beta)",
                                     main = "Plausibly Exogenous IV Sensitivity",
                                     ...) {
   if (inherits(df_plot, "spliv_sensitivity_path")) {
     .plot_spliv_sensitivity_path(
       x = df_plot,
+      term = term,
       ylab = ylab,
       main = main,
       ...
@@ -780,13 +798,23 @@ plot_sp_sensitivity <- function(df_plot,
   if (inherits(df_plot, "spliv_fit") || inherits(df_plot, "plausexog_fit")) {
     est <- df_plot$estimates
     x <- seq_len(nrow(est))
+    point <- est$estimate %||% rep(NA_real_, nrow(est))
+    if (!any(is.finite(point)) && all(c("conf.low", "conf.high") %in% names(est))) {
+      point <- (est$conf.low + est$conf.high) / 2
+    }
+    finite_limits <- c(point, est$conf.low %||% numeric(0), est$conf.high %||% numeric(0))
+    finite_limits <- finite_limits[is.finite(finite_limits)]
+    if (!length(finite_limits)) {
+      stop("The fitted object contains no finite estimates or confidence limits to plot.")
+    }
     graphics::plot(
       x,
-      est$estimate %||% rep(NA_real_, nrow(est)),
+      point,
       xaxt = "n",
       xlab = "Term",
       ylab = ylab,
       main = main,
+      ylim = range(finite_limits),
       pch = 19
     )
     graphics::axis(1, at = x, labels = est$term, las = 2, cex.axis = 0.7)
@@ -855,11 +883,13 @@ plot.plausexog_fit <- function(x, ...) {
 
 #' @export
 plot.spliv_sensitivity_path <- function(x,
+                                        term = NULL,
                                         ylab = "Effect (beta)",
                                         main = "SPLIV Sensitivity Path",
                                         ...) {
   .plot_spliv_sensitivity_path(
     x = x,
+    term = term,
     ylab = ylab,
     main = main,
     ...

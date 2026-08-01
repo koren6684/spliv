@@ -41,3 +41,9 @@ Data frame with sensitivity path.
 \description{
 LTZ Sensitivity with Normal Approximation to U(0, delta)
 }
+\examples{
+set.seed(12)
+d <- data.frame(y = rnorm(60), x = rnorm(60), z = rnorm(60))
+sp_sensitivity_ltz_uniform01_as_normal(y ~ x | z, d, term = "x",
+  inst_vary = "z", delta_grid = c(0, 0.1), scale_instrument = "none")
+}

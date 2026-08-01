@@ -18,7 +18,7 @@ bpe_validate_design(
   bpe_min_varZ_S = 1e-06,
   bpe_equiv_margin,
   bpe_equiv_level = 0.95,
-  bpe_transport = c("none", "sampling", "conservative"),
+  bpe_transport = c("sampling", "conservative"),
   bpe_transport_kappa = 0,
   bpe_kappa = 1,
   scale_instrument = c("residual_sd", "none")
@@ -50,16 +50,19 @@ when clustered covariance is used.}
 \item{bpe_min_varZ_S}{Minimum residualized instrument variance required in
 the subset.}
 
-\item{bpe_equiv_margin}{Researcher-specified equivalence margin for the
-first-stage coefficient. Eligibility is based on the first-stage
-equivalence interval, not on the first-stage F-statistic.}
+\item{bpe_equiv_margin}{Researcher-specified equivalence margin. With
+\code{scale_instrument = "residual_sd"}, this bounds the first-stage effect in
+residual treatment standard deviations associated with a one-residual-SD
+instrument shift. With \code{scale_instrument = "none"}, it bounds the raw
+first-stage coefficient. Eligibility uses the corresponding confidence
+interval, not the first-stage F-statistic.}
 
 \item{bpe_equiv_level}{Confidence level used for the first-stage equivalence
 interval.}
 
-\item{bpe_transport}{One of \code{"none"}, \code{"sampling"}, or \code{"conservative"}.
-Transportability is an assumption reflected in the reported covariance; it
-is not established by the subset itself.}
+\item{bpe_transport}{One of \code{"sampling"} or \code{"conservative"}. Sampling uses
+the estimated reduced-form sampling covariance. Conservative adds the
+documented inflation controlled by \code{bpe_transport_kappa}.}
 
 \item{bpe_transport_kappa}{Non-negative scalar controlling the conservative
 transport covariance inflation.}
@@ -86,7 +89,8 @@ d <- data.frame(
   inactive = rep(c(TRUE, FALSE), each = 40)
 )
 design <- bpe_design("Inactive", ~ inactive,
-  rationale = "The treatment channel is absent.")
+  rationale = "The treatment channel is absent.",
+  transportability_rationale = "The direct-effect mechanism applies to the target sample.")
 bpe_validate_design(y ~ x | z, d, design,
   bpe_min_n_S = 20, bpe_equiv_margin = 1)
 }

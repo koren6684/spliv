@@ -26,7 +26,7 @@ intentionally excludes confirmatory BPE.}
 implies theta bounds \verb{[-d, +d]}.}
 
 \item{violation_pattern}{Optional \code{spliv_pattern()} object. If omitted, the
-path uses the package's backward-compatible uniform direct-effect pattern.}
+path uses a uniform direct-effect pattern.}
 
 \item{stop_on_error}{Logical; if \code{TRUE} (default), stop on the first failed
 fit. If \code{FALSE}, record \code{NA} rows and store the error message in the

@@ -50,3 +50,9 @@ Data frame with sensitivity path.
 \description{
 UCI Sensitivity over Delta Grid
 }
+\examples{
+set.seed(11)
+d <- data.frame(y = rnorm(60), x = rnorm(60), z = rnorm(60))
+sp_sensitivity_uci_support(y ~ x | z, d, term = "x", inst_vary = "z",
+  delta_grid = c(0, 0.1), grid = 5, scale_instrument = "none")
+}

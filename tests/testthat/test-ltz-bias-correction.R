@@ -17,7 +17,7 @@ test_that("LTZ scalar correction matches mu/pi in just-identified model", {
   Z <- matrix(z, ncol = 1, dimnames = list(NULL, "z"))
 
   iv <- spliv:::.iv_2sls_mats(y = y, X = X, Z = Z, vcov = "iid")
-  ltz <- spliv:::sp_ltz_mats(
+  ltz <- spliv:::.sp_ltz_mats(
     y = y,
     X = X,
     Z = Z,
@@ -59,7 +59,7 @@ test_that("LTZ supports a generalized direct-effect regressor for patterned sens
   Z <- matrix(z, ncol = 1, dimnames = list(NULL, "z"))
   G <- matrix(g, ncol = 1, dimnames = list(NULL, "theta_z_pattern"))
 
-  ltz_pattern <- spliv:::sp_ltz_mats(
+  ltz_pattern <- spliv:::.sp_ltz_mats(
     y = y,
     X = X,
     Z = Z,
