@@ -10,7 +10,6 @@ bpe_explore_subsets(
   rules = NULL,
   seed = 1,
   min_n_S = NULL,
-  max_F_S = NULL,
   min_varZ_S = NULL,
   return_all = TRUE
 )
@@ -29,9 +28,6 @@ length \code{nrow(data)}, or a named list with components \code{name} and \code{
 \item{seed}{Integer seed for deterministic rule evaluation.}
 
 \item{min_n_S}{Optional exploratory screen for subset size.}
-
-\item{max_F_S}{Deprecated exploratory screen for the first-stage F-statistic.
-The first-stage F-statistic is reported as a diagnostic only.}
 
 \item{min_varZ_S}{Optional exploratory screen for within-subset residualized
 instrument variance.}

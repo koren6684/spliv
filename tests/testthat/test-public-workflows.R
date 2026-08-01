@@ -27,7 +27,8 @@ test_that("confirmatory BPE design workflow is callable on synthetic data", {
   design <- bpe_design(
     "Synthetic inactive subset", ~ inactive,
     rationale = "The treatment channel is absent in the inactive subset.",
-    variables_used = "inactive", pre_specified = TRUE
+    variables_used = "inactive", pre_specified = TRUE,
+    transportability_rationale = "The same direct-effect mechanism applies to the target sample."
   )
   val <- bpe_validate_design(
     y ~ x | z, d, design, vcov = "hc1",

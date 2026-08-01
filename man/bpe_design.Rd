@@ -34,8 +34,10 @@ subsets unless the package can safely infer the variables.}
 \item{pre_specified}{Logical indicator for confirmatory use. Confirmatory BPE
 requires \code{TRUE}.}
 
-\item{transportability_rationale}{Optional description of why the direct
-effect learned in the subset may be informative for the target sample.}
+\item{transportability_rationale}{Optional at construction time. A non-empty
+description of why the direct effect learned in the subset may be
+informative for the target sample is required for confirmatory validation
+and estimation.}
 
 \item{notes}{Optional free-form notes.}
 }
@@ -51,7 +53,8 @@ theoretically motivated instrument-inactive subset.
 design <- bpe_design(
   "Inactive subset", ~ inactive,
   rationale = "The treatment channel is absent in this subset.",
-  variables_used = "inactive", pre_specified = TRUE
+  variables_used = "inactive", pre_specified = TRUE,
+  transportability_rationale = "The same direct-effect mechanism applies to the target sample."
 )
 bpe_eval_subset(design, data.frame(inactive = c(TRUE, FALSE)))
 }

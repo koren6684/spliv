@@ -16,8 +16,10 @@
 #'   `"design_based"`.
 #' @param pre_specified Logical indicator for confirmatory use. Confirmatory BPE
 #'   requires `TRUE`.
-#' @param transportability_rationale Optional description of why the direct
-#'   effect learned in the subset may be informative for the target sample.
+#' @param transportability_rationale Optional at construction time. A non-empty
+#'   description of why the direct effect learned in the subset may be
+#'   informative for the target sample is required for confirmatory validation
+#'   and estimation.
 #' @param notes Optional free-form notes.
 #'
 #' @return An object of class `"spliv_bpe_design"`.
@@ -25,7 +27,8 @@
 #' design <- bpe_design(
 #'   "Inactive subset", ~ inactive,
 #'   rationale = "The treatment channel is absent in this subset.",
-#'   variables_used = "inactive", pre_specified = TRUE
+#'   variables_used = "inactive", pre_specified = TRUE,
+#'   transportability_rationale = "The same direct-effect mechanism applies to the target sample."
 #' )
 #' bpe_eval_subset(design, data.frame(inactive = c(TRUE, FALSE)))
 #' @export
@@ -447,9 +450,9 @@ bpe_eval_subset <- function(design, data, max_na_share = 0.05) {
 }
 
 .bpe_transport_covariance <- function(vcov_mat,
-                                      bpe_transport = c("none", "sampling", "conservative"),
+                                      bpe_transport = c("sampling", "conservative"),
                                       bpe_transport_kappa = 0) {
-  bpe_transport <- match.arg(tolower(bpe_transport), c("none", "sampling", "conservative"))
+  bpe_transport <- match.arg(tolower(bpe_transport), c("sampling", "conservative"))
   if (!is.matrix(vcov_mat)) {
     stop("`vcov_mat` must be a matrix.")
   }
@@ -458,7 +461,7 @@ bpe_eval_subset <- function(design, data, max_na_share = 0.05) {
     stop("`bpe_transport_kappa` must be a non-negative finite scalar.")
   }
 
-  if (bpe_transport %in% c("none", "sampling")) {
+  if (identical(bpe_transport, "sampling")) {
     return(list(
       vcov = as.matrix(vcov_mat),
       mode = bpe_transport,
@@ -571,7 +574,7 @@ bpe_eval_subset <- function(design, data, max_na_share = 0.05) {
                                         bpe_min_varZ_S = 1e-6,
                                         bpe_equiv_margin,
                                         bpe_equiv_level = 0.95,
-                                        bpe_transport = c("none", "sampling", "conservative"),
+                                        bpe_transport = c("sampling", "conservative"),
                                         bpe_transport_kappa = 0,
                                         bpe_kappa = 1,
                                         scale_instrument = c("residual_sd", "none")) {
@@ -580,6 +583,9 @@ bpe_eval_subset <- function(design, data, max_na_share = 0.05) {
   fe_engine <- match.arg(fe_engine)
   vcov <- match.arg(tolower(vcov), c("iid", "hc1", "cluster"))
   scale_instrument <- match.arg(scale_instrument)
+  transportability_rationale_passed <- is.character(design$transportability_rationale) &&
+    length(design$transportability_rationale) == 1L &&
+    nzchar(trimws(design$transportability_rationale))
   if (!is.numeric(bpe_min_n_S) || length(bpe_min_n_S) != 1 || !is.finite(bpe_min_n_S) || bpe_min_n_S <= 0) {
     stop("`bpe_min_n_S` must be a positive finite scalar.")
   }
@@ -633,6 +639,7 @@ bpe_eval_subset <- function(design, data, max_na_share = 0.05) {
       variables_used = .bpe_design_variables(design),
       pre_specified = design$pre_specified,
       transportability_rationale = design$transportability_rationale,
+      transportability_rationale_passed = transportability_rationale_passed,
       notes = design$notes,
       n_S = 0,
       share_S = 0,
@@ -642,19 +649,29 @@ bpe_eval_subset <- function(design, data, max_na_share = 0.05) {
       residualized_instrument_sd = setNames(.bpe_full_sample_sd(parsed, data, fe, fe_engine, z_name), z_name),
       residualized_treatment_sd_S = setNames(NA_real_, fs_target),
       first_stage_coefficient = setNames(NA_real_, z_name),
+      raw_first_stage_coefficient = setNames(NA_real_, z_name),
       first_stage_se = setNames(NA_real_, z_name),
       first_stage_ci = matrix(NA_real_, nrow = 1, dimnames = list(z_name, c("lower", "upper"))),
+      raw_first_stage_ci = matrix(NA_real_, nrow = 1, dimnames = list(z_name, c("lower", "upper"))),
       first_stage_f_statistic = setNames(NA_real_, z_name),
       first_stage_f_type = "conventional_ols_diagnostic",
       first_stage_effect_one_residual_sd_Z = setNames(NA_real_, z_name),
       standardized_first_stage_effect = setNames(NA_real_, z_name),
+      standardized_first_stage_ci = matrix(NA_real_, nrow = 1, dimnames = list(z_name, c("lower", "upper"))),
+      equivalence_ci = matrix(NA_real_, nrow = 1, dimnames = list(z_name, c("lower", "upper"))),
       equivalence_margin = .bpe_normalize_equiv_margin(bpe_equiv_margin, z_name),
+      equivalence_scale = if (identical(scale_instrument, "residual_sd")) {
+        "residual_treatment_sd_per_residual_instrument_sd"
+      } else {
+        "raw_first_stage_coefficient"
+      },
       equivalence_level = bpe_equiv_level,
       equivalence_passed = FALSE,
       eligibility_passed = FALSE,
       eligibility_checks = list(
         pre_specified = TRUE,
         rationale = TRUE,
+        transportability_rationale = transportability_rationale_passed,
         minimum_n = FALSE,
         minimum_clusters = if (identical(vcov, "cluster")) FALSE else TRUE,
         residual_variation = FALSE,
@@ -664,8 +681,16 @@ bpe_eval_subset <- function(design, data, max_na_share = 0.05) {
       reduced_form_direct_effect_cov = matrix(NA_real_, 1, 1, dimnames = list(z_name, z_name)),
       reduced_form_sampling_cov = matrix(NA_real_, 1, 1, dimnames = list(z_name, z_name)),
       transport_covariance = matrix(NA_real_, 1, 1, dimnames = list(z_name, z_name)),
-      transport_mode = match.arg(tolower(bpe_transport), c("none", "sampling", "conservative")),
+      transport_mode = match.arg(tolower(bpe_transport), c("sampling", "conservative")),
       transport_uncertainty_inflation = NA_real_,
+      transport_covariance_description = if (identical(
+        match.arg(tolower(bpe_transport), c("sampling", "conservative")),
+        "sampling"
+      )) {
+        "estimated reduced-form sampling covariance"
+      } else {
+        "estimated reduced-form sampling covariance multiplied by (1 + bpe_transport_kappa)"
+      },
       prior_mu_sub = setNames(NA_real_, z_name),
       prior_Omega_sub = matrix(NA_real_, 1, 1, dimnames = list(z_name, z_name)),
       prior_mu_full = rep(NA_real_, ncol(parsed$Z)),
@@ -673,7 +698,15 @@ bpe_eval_subset <- function(design, data, max_na_share = 0.05) {
       subset_idx_full = subset_idx_full,
       design_audit = audit,
       warnings = unique(c(warnings, mats_S$reason)),
-      message = mats_S$reason,
+      message = paste(
+        c(
+          if (!transportability_rationale_passed) {
+            "BPE eligibility failed: confirmatory BPE requires a non-empty `transportability_rationale` in `bpe_design()`."
+          },
+          mats_S$reason
+        ),
+        collapse = " "
+      ),
       instrument = z_name,
       scale_instrument = scale_instrument
     )
@@ -699,34 +732,84 @@ bpe_eval_subset <- function(design, data, max_na_share = 0.05) {
     fe_present = !is.null(fe)
   )
 
-  fs <- .bpe_first_stage_diagnostics(
-    main_var = mats_S$X[, fs_target, drop = TRUE],
-    Z_sub = mats_S$Z,
-    W_sub = mats_S$W,
-    z_name = z_name,
-    fe_present = !is.null(fe),
-    vcov = vcov,
-    cluster_id = cluster_S,
-    level = bpe_equiv_level
+  first_stage_error <- NULL
+  fs <- tryCatch(
+    .bpe_first_stage_diagnostics(
+      main_var = mats_S$X[, fs_target, drop = TRUE],
+      Z_sub = mats_S$Z,
+      W_sub = mats_S$W,
+      z_name = z_name,
+      fe_present = !is.null(fe),
+      vcov = vcov,
+      cluster_id = cluster_S,
+      level = bpe_equiv_level
+    ),
+    error = function(e) {
+      first_stage_error <<- paste0(
+        "First-stage diagnostics failed, usually because the subset has insufficient instrument variation or a rank-deficient model matrix: ",
+        conditionMessage(e)
+      )
+      list(
+        coefficient = setNames(NA_real_, z_name),
+        se = setNames(NA_real_, z_name),
+        ci = matrix(NA_real_, 1, 2, dimnames = list(z_name, c("lower", "upper"))),
+        f_statistic = setNames(NA_real_, z_name),
+        f_type = "conventional_ols_diagnostic"
+      )
+    }
   )
   margin <- .bpe_normalize_equiv_margin(bpe_equiv_margin, z_name)
   ci_row <- fs$ci[z_name, , drop = TRUE]
-  equivalence_passed <- isTRUE(ci_row["lower"] >= -margin[[z_name]] && ci_row["upper"] <= margin[[z_name]])
   first_stage_effect_one_sd_z <- unname(fs$coefficient[[z_name]]) * residual_sd_S
-  standardized_first_stage_effect <- if (is.finite(residual_sd_x_S) && residual_sd_x_S > 0) {
-    first_stage_effect_one_sd_z / residual_sd_x_S
+  standardization_factor <- if (is.finite(residual_sd_x_S) && residual_sd_x_S > 0) {
+    residual_sd_S / residual_sd_x_S
   } else {
     NA_real_
   }
+  standardized_first_stage_effect <- unname(fs$coefficient[[z_name]]) * standardization_factor
+  standardized_first_stage_ci <- matrix(
+    as.numeric(ci_row) * standardization_factor,
+    nrow = 1,
+    dimnames = list(z_name, c("lower", "upper"))
+  )
+  equivalence_scale <- if (identical(scale_instrument, "residual_sd")) {
+    "residual_treatment_sd_per_residual_instrument_sd"
+  } else {
+    "raw_first_stage_coefficient"
+  }
+  equivalence_ci <- if (identical(scale_instrument, "residual_sd")) {
+    standardized_first_stage_ci
+  } else {
+    fs$ci
+  }
+  equivalence_ci_row <- equivalence_ci[z_name, , drop = TRUE]
+  equivalence_passed <- isTRUE(
+    equivalence_ci_row["lower"] >= -margin[[z_name]] &&
+      equivalence_ci_row["upper"] <= margin[[z_name]]
+  )
 
-  rf_S <- .bpe_reduced_form_gamma(
-    y = mats_S$y,
-    Z = mats_S$Z,
-    W = mats_S$W,
-    z_names = z_name,
-    fe_present = !is.null(fe),
-    vcov = vcov,
-    cluster_id = cluster_S
+  reduced_form_error <- NULL
+  rf_S <- tryCatch(
+    .bpe_reduced_form_gamma(
+      y = mats_S$y,
+      Z = mats_S$Z,
+      W = mats_S$W,
+      z_names = z_name,
+      fe_present = !is.null(fe),
+      vcov = vcov,
+      cluster_id = cluster_S
+    ),
+    error = function(e) {
+      reduced_form_error <<- paste0(
+        "Reduced-form diagnostics failed, usually because the subset has insufficient instrument variation or a rank-deficient model matrix: ",
+        conditionMessage(e)
+      )
+      list(
+        gamma = setNames(NA_real_, z_name),
+        se = setNames(NA_real_, z_name),
+        vcov = matrix(NA_real_, 1, 1, dimnames = list(z_name, z_name))
+      )
+    }
   )
   transport <- .bpe_transport_covariance(
     vcov_mat = rf_S$vcov,
@@ -745,7 +828,13 @@ bpe_eval_subset <- function(design, data, max_na_share = 0.05) {
   minimum_clusters_passed <- if (is.null(G_S)) TRUE else G_S >= bpe_min_clusters_S
   residual_variation_passed <- is.finite(varZ_S) && varZ_S >= bpe_min_varZ_S
   eligibility_passed <- all(
-    c(minimum_n_passed, minimum_clusters_passed, residual_variation_passed, equivalence_passed)
+    c(
+      transportability_rationale_passed,
+      minimum_n_passed,
+      minimum_clusters_passed,
+      residual_variation_passed,
+      equivalence_passed
+    )
   )
 
   out <- list(
@@ -755,6 +844,7 @@ bpe_eval_subset <- function(design, data, max_na_share = 0.05) {
     variables_used = .bpe_design_variables(design),
     pre_specified = design$pre_specified,
     transportability_rationale = design$transportability_rationale,
+    transportability_rationale_passed = transportability_rationale_passed,
     notes = design$notes,
     n_S = nrow(mats_S$Z),
     share_S = share_S,
@@ -764,19 +854,25 @@ bpe_eval_subset <- function(design, data, max_na_share = 0.05) {
     residualized_instrument_sd = setNames(residual_sd_full, z_name),
     residualized_treatment_sd_S = setNames(residual_sd_x_S, fs_target),
     first_stage_coefficient = fs$coefficient,
+    raw_first_stage_coefficient = fs$coefficient,
     first_stage_se = fs$se,
     first_stage_ci = fs$ci,
+    raw_first_stage_ci = fs$ci,
     first_stage_f_statistic = fs$f_statistic,
     first_stage_f_type = fs$f_type,
     first_stage_effect_one_residual_sd_Z = setNames(first_stage_effect_one_sd_z, z_name),
     standardized_first_stage_effect = setNames(standardized_first_stage_effect, z_name),
+    standardized_first_stage_ci = standardized_first_stage_ci,
+    equivalence_ci = equivalence_ci,
     equivalence_margin = margin,
+    equivalence_scale = equivalence_scale,
     equivalence_level = bpe_equiv_level,
     equivalence_passed = equivalence_passed,
     eligibility_passed = eligibility_passed,
     eligibility_checks = list(
       pre_specified = TRUE,
       rationale = TRUE,
+      transportability_rationale = transportability_rationale_passed,
       minimum_n = minimum_n_passed,
       minimum_clusters = minimum_clusters_passed,
       residual_variation = residual_variation_passed,
@@ -788,21 +884,41 @@ bpe_eval_subset <- function(design, data, max_na_share = 0.05) {
     transport_covariance = transport$vcov,
     transport_mode = transport$mode,
     transport_uncertainty_inflation = transport$inflation,
+    transport_covariance_description = if (identical(transport$mode, "sampling")) {
+      "estimated reduced-form sampling covariance"
+    } else {
+      "estimated reduced-form sampling covariance multiplied by (1 + bpe_transport_kappa)"
+    },
     prior_mu_sub = setNames(as.numeric(rf_S$gamma), z_name),
     prior_Omega_sub = prior_Omega_sub,
     prior_mu_full = prior_full$mu,
     prior_Omega_full = prior_full$Omega,
     subset_idx_full = subset_idx_full,
     design_audit = audit,
-    warnings = warnings,
-    message = if (eligibility_passed) "" else .bpe_eligibility_message(
-      n_S = nrow(mats_S$Z),
-      G_S = G_S,
-      varZ_S = varZ_S,
-      margin = margin[[z_name]],
-      ci_lower = ci_row["lower"],
-      ci_upper = ci_row["upper"]
-    ),
+    warnings = unique(c(warnings, first_stage_error, reduced_form_error)),
+    message = if (eligibility_passed) {
+      ""
+    } else {
+      paste(
+        c(
+          if (!transportability_rationale_passed) {
+            "BPE eligibility failed: confirmatory BPE requires a non-empty `transportability_rationale` in `bpe_design()`."
+          },
+          first_stage_error,
+          reduced_form_error,
+          .bpe_eligibility_message(
+            n_S = nrow(mats_S$Z),
+            G_S = G_S,
+            varZ_S = varZ_S,
+            margin = margin[[z_name]],
+            ci_lower = equivalence_ci_row["lower"],
+            ci_upper = equivalence_ci_row["upper"],
+            equivalence_scale = equivalence_scale
+          )
+        ),
+        collapse = " "
+      )
+    },
     first_stage_target = fs_target,
     instrument = z_name,
     scale_instrument = scale_instrument
@@ -811,12 +927,18 @@ bpe_eval_subset <- function(design, data, max_na_share = 0.05) {
   out
 }
 
-.bpe_eligibility_message <- function(n_S, G_S, varZ_S, margin, ci_lower, ci_upper) {
+.bpe_eligibility_message <- function(n_S,
+                                     G_S,
+                                     varZ_S,
+                                     margin,
+                                     ci_lower,
+                                     ci_upper,
+                                     equivalence_scale) {
   cluster_text <- if (is.null(G_S)) "not clustered" else paste0("G_S=", G_S)
   sprintf(
     paste0(
       "BPE eligibility failed for the proposed subset S ",
-      "(n_S=%s, %s, varZ_S=%.6g, first-stage CI=[%.6g, %.6g], equivalence margin=[%.6g, %.6g])."
+      "(n_S=%s, %s, varZ_S=%.6g, equivalence CI=[%.6g, %.6g], equivalence margin=[%.6g, %.6g], scale=%s)."
     ),
     as.character(round(n_S)),
     cluster_text,
@@ -824,7 +946,8 @@ bpe_eval_subset <- function(design, data, max_na_share = 0.05) {
     ci_lower,
     ci_upper,
     -margin,
-    margin
+    margin,
+    equivalence_scale
   )
 }
 
@@ -847,14 +970,17 @@ bpe_eval_subset <- function(design, data, max_na_share = 0.05) {
 #'   when clustered covariance is used.
 #' @param bpe_min_varZ_S Minimum residualized instrument variance required in
 #'   the subset.
-#' @param bpe_equiv_margin Researcher-specified equivalence margin for the
-#'   first-stage coefficient. Eligibility is based on the first-stage
-#'   equivalence interval, not on the first-stage F-statistic.
+#' @param bpe_equiv_margin Researcher-specified equivalence margin. With
+#'   `scale_instrument = "residual_sd"`, this bounds the first-stage effect in
+#'   residual treatment standard deviations associated with a one-residual-SD
+#'   instrument shift. With `scale_instrument = "none"`, it bounds the raw
+#'   first-stage coefficient. Eligibility uses the corresponding confidence
+#'   interval, not the first-stage F-statistic.
 #' @param bpe_equiv_level Confidence level used for the first-stage equivalence
 #'   interval.
-#' @param bpe_transport One of `"none"`, `"sampling"`, or `"conservative"`.
-#'   Transportability is an assumption reflected in the reported covariance; it
-#'   is not established by the subset itself.
+#' @param bpe_transport One of `"sampling"` or `"conservative"`. Sampling uses
+#'   the estimated reduced-form sampling covariance. Conservative adds the
+#'   documented inflation controlled by `bpe_transport_kappa`.
 #' @param bpe_transport_kappa Non-negative scalar controlling the conservative
 #'   transport covariance inflation.
 #' @param bpe_kappa Positive scalar multiplier applied to the transported BPE
@@ -872,7 +998,8 @@ bpe_eval_subset <- function(design, data, max_na_share = 0.05) {
 #'   inactive = rep(c(TRUE, FALSE), each = 40)
 #' )
 #' design <- bpe_design("Inactive", ~ inactive,
-#'   rationale = "The treatment channel is absent.")
+#'   rationale = "The treatment channel is absent.",
+#'   transportability_rationale = "The direct-effect mechanism applies to the target sample.")
 #' bpe_validate_design(y ~ x | z, d, design,
 #'   bpe_min_n_S = 20, bpe_equiv_margin = 1)
 #' @export
@@ -889,7 +1016,7 @@ bpe_validate_design <- function(formula,
                                 bpe_min_varZ_S = 1e-6,
                                 bpe_equiv_margin,
                                 bpe_equiv_level = 0.95,
-                                bpe_transport = c("none", "sampling", "conservative"),
+                                bpe_transport = c("sampling", "conservative"),
                                 bpe_transport_kappa = 0,
                                 bpe_kappa = 1,
                                 scale_instrument = c("residual_sd", "none")) {

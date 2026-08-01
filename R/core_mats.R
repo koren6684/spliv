@@ -85,7 +85,7 @@
   list(beta = beta, vcov = V, resid = u, XZ = XZ, ZZinv = ZZinv, XPZX = XPZX)
 }
 
-sp_ltz_mats <- function(y, X, Z, mu, Omega,
+.sp_ltz_mats <- function(y, X, Z, mu, Omega,
                         level = 0.95,
                         vcov = c("hc1", "hc0", "iid", "cluster"),
                         cluster_id = NULL,
@@ -157,15 +157,13 @@ sp_ltz_mats <- function(y, X, Z, mu, Omega,
   )
 }
 
-conley_ltz_mats <- sp_ltz_mats
-
 .make_gamma_grid <- function(gmin, gmax, steps) {
   p <- length(gmin)
   grids <- lapply(seq_len(p), function(j) seq(gmin[j], gmax[j], length.out = steps[j]))
   as.matrix(expand.grid(grids, KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE))
 }
 
-sp_uci_mats <- function(y, X, Z, inst_idx, gamma_grid,
+.sp_uci_mats <- function(y, X, Z, inst_idx, gamma_grid,
                         level = 0.95,
                         vcov = c("hc1", "hc0", "iid", "cluster"),
                         cluster_id = NULL,
@@ -214,8 +212,6 @@ sp_uci_mats <- function(y, X, Z, inst_idx, gamma_grid,
   )
 }
 
-conley_uci_mats <- sp_uci_mats
-
 #' Local-to-Zero Inference for Plausibly Exogenous IV
 #'
 #' Formula-level wrapper over the matrix core LTZ implementation.
@@ -249,7 +245,7 @@ sp_ltz <- function(formula, data, omega, mu,
     cluster_id <- as.vector(cluster)[parsed$keep]
   }
 
-  out <- sp_ltz_mats(
+  out <- .sp_ltz_mats(
     y = parsed$y,
     X = parsed$X,
     Z = parsed$Z,
@@ -315,7 +311,7 @@ sp_uci <- function(formula, data,
     cluster_id <- as.vector(cluster)[parsed$keep]
   }
 
-  sp_uci_mats(
+  .sp_uci_mats(
     y = parsed$y,
     X = parsed$X,
     Z = parsed$Z,

@@ -54,7 +54,3 @@
     inst_formula = inst_f
   )
 }
-
-.iv_inst_names <- function(formula, data) {
-  .iv_parse(formula, data)$inst_names
-}

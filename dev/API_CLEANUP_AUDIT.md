@@ -2,7 +2,7 @@
 
 Version 0.2.0 exposes the canonical `spliv*()`/`bpe_*()` workflow together
 with genuinely distinct lower-level `sp_*()` sensitivity functions and
-`plot_sp_sensitivity()`. Accidental aliases from the 0.1.1 staging history
+`plot_sp_sensitivity()`. Accidental aliases present in the 0.1.x interface
 were removed rather than retained as a deprecation transition.
 
 ## Canonical public API
@@ -22,10 +22,24 @@ should normally start with `spliv()` and `spliv_sensitivity_path()`.
 
 ## Internal helpers
 
-`.demean_fixest`, `.demean_lfe`, `.embed_prior_into_full_Z`, and
-`.estimate_gamma_zero_first_stage` remain unexported implementation helpers.
-`iv_inst_names` was also made internal because it has no package-internal
-callers.
+`.demean_fixest` and `.demean_lfe` remain internal FE engines. The old prior,
+subset, matrix-alias, and parser helpers were removed because they have no
+package-internal callers; the named prior embedding helper used by BPE remains
+internal.
+
+The requested dead-code review produced these decisions:
+
+- `conley_ltz_mats` and `conley_uci_mats` were not preserved as historical
+  names. Their necessary numerical engines remain as the internal
+  `.sp_ltz_mats` and `.sp_uci_mats` functions.
+- `.resolve_bpe_omega` was removed with the obsolete heuristic/none BPE
+  covariance route.
+- `.estimate_gamma_zero_first_stage` was removed because no maintained caller
+  used it; confirmatory BPE uses the current reduced-form diagnostic engine.
+- `.embed_prior_into_full_Z` and `bpe_prior_mats` were removed. The smaller
+  `.embed_prior_by_names` helper remains because final BPE estimation calls it.
+- `.iv_inst_names` was removed because parsing already records instrument
+  names and no maintained caller needed the duplicate helper.
 
 ## Fit classes
 

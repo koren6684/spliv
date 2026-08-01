@@ -254,54 +254,6 @@
   )
 }
 
-.resolve_bpe_omega <- function(bpe_omega, se_S, se_notS, z_names) {
-  m <- length(z_names)
-
-  if (is.character(bpe_omega) && length(bpe_omega) == 1) {
-    opt <- match.arg(tolower(bpe_omega), c("heuristic", "none"))
-    if (opt == "none") {
-      out <- matrix(0, m, m)
-      dimnames(out) <- list(z_names, z_names)
-      return(out)
-    }
-
-    se_mix <- sqrt(pmax(0, se_S^2 + se_notS^2))
-    bad <- !is.finite(se_mix)
-    se_mix[bad] <- abs(se_S[bad])
-    se_mix[!is.finite(se_mix)] <- 0
-
-    v <- (0.125 * se_mix)^2
-    out <- diag(v, m, m)
-    dimnames(out) <- list(z_names, z_names)
-    return(out)
-  }
-
-  if (is.numeric(bpe_omega)) {
-    if (length(bpe_omega) == 1) {
-      out <- diag(rep(as.numeric(bpe_omega), m), m, m)
-      dimnames(out) <- list(z_names, z_names)
-      return(out)
-    }
-    if (length(bpe_omega) == m) {
-      out <- diag(as.numeric(bpe_omega), m, m)
-      dimnames(out) <- list(z_names, z_names)
-      return(out)
-    }
-    stop("Numeric `bpe_omega` must be scalar or length equal to number of BPE instruments.")
-  }
-
-  if (is.matrix(bpe_omega)) {
-    if (nrow(bpe_omega) != m || ncol(bpe_omega) != m) {
-      stop("Matrix `bpe_omega` must have dimensions length(z_names) x length(z_names).")
-    }
-    out <- as.matrix(bpe_omega)
-    dimnames(out) <- list(z_names, z_names)
-    return(out)
-  }
-
-  stop("`bpe_omega` must be one of 'heuristic', 'none', a numeric scalar/vector, or a matrix.")
-}
-
 .bpe_exploration_warning_text <- function() {
   paste(
     "This function is exploratory. It should not be used for confirmatory BPE",
@@ -388,8 +340,6 @@
 #'   length `nrow(data)`, or a named list with components `name` and `subset`.
 #' @param seed Integer seed for deterministic rule evaluation.
 #' @param min_n_S Optional exploratory screen for subset size.
-#' @param max_F_S Deprecated exploratory screen for the first-stage F-statistic.
-#'   The first-stage F-statistic is reported as a diagnostic only.
 #' @param min_varZ_S Optional exploratory screen for within-subset residualized
 #'   instrument variance.
 #' @param return_all If `TRUE` (default), returns all candidates and diagnostics.
@@ -417,7 +367,6 @@ bpe_explore_subsets <- function(data,
                                 rules = NULL,
                                 seed = 1,
                                 min_n_S = NULL,
-                                max_F_S = NULL,
                                 min_varZ_S = NULL,
                                 return_all = TRUE) {
   warning(.bpe_exploration_warning_text(), call. = FALSE)
@@ -427,7 +376,6 @@ bpe_explore_subsets <- function(data,
     rules = rules,
     seed = seed,
     min_n_S = min_n_S,
-    max_F_S = max_F_S,
     min_varZ_S = min_varZ_S,
     return_all = return_all
   )
@@ -438,7 +386,6 @@ bpe_explore_subsets <- function(data,
                                       rules = NULL,
                                       seed = 1,
                                       min_n_S = NULL,
-                                      max_F_S = NULL,
                                       min_varZ_S = NULL,
                                       return_all = TRUE) {
   set.seed(as.integer(seed))
@@ -456,13 +403,6 @@ bpe_explore_subsets <- function(data,
   candidates <- .bpe_normalize_exploratory_rules(rules)
 
   parsed <- .iv_parse(spec$formula, data, extra_vars = all.vars(fe))
-
-  if (!is.null(max_F_S)) {
-    warning(
-      "`max_F_S` is deprecated in `bpe_explore_subsets()` and is reported only as exploratory metadata.",
-      call. = FALSE
-    )
-  }
 
   out_rows <- vector("list", length(candidates))
 
@@ -484,7 +424,6 @@ bpe_explore_subsets <- function(data,
         F_S = NA_real_,
         screen_n_ok = NA,
         screen_varZ_ok = NA,
-        screen_F_ok = NA,
         message = conditionMessage(explored_i),
         stringsAsFactors = FALSE
       )
@@ -517,7 +456,6 @@ bpe_explore_subsets <- function(data,
       F_S = as.numeric(diag_i$F_S),
       screen_n_ok = if (is.null(min_n_S)) NA else isTRUE(is.finite(diag_i$n_S) && diag_i$n_S >= min_n_S),
       screen_varZ_ok = if (is.null(min_varZ_S)) NA else isTRUE(is.finite(var_min) && var_min >= min_varZ_S),
-      screen_F_ok = if (is.null(max_F_S)) NA else isTRUE(is.finite(diag_i$F_S) && diag_i$F_S <= max_F_S),
       message = msg_i,
       stringsAsFactors = FALSE
     )
@@ -539,63 +477,6 @@ bpe_explore_subsets <- function(data,
   )
 }
 
-.estimate_gamma_zero_first_stage <- function(data,
-                                             y_name,
-                                             z_names,
-                                             controls = character(0),
-                                             subset,
-                                             fe = NULL) {
-  if (inherits(subset, "spliv_bpe_design")) {
-    idx <- bpe_eval_subset(subset, data = data)
-  } else {
-    legacy_design <- bpe_design(
-      name = "Legacy exploratory subset",
-      subset = subset,
-      rationale = "Legacy exploratory helper; not valid for confirmatory BPE.",
-      pre_specified = FALSE
-    )
-    idx <- bpe_eval_subset(legacy_design, data = data)
-  }
-
-  vars <- unique(c(y_name, z_names, controls, all.vars(fe)))
-  dsub <- data[idx, vars, drop = FALSE]
-  dsub <- dsub[stats::complete.cases(dsub), , drop = FALSE]
-  if (nrow(dsub) < 5) {
-    stop("BPE subset has too few complete observations.")
-  }
-
-  rhs <- paste(c(z_names, controls), collapse = " + ")
-  if (is.null(fe)) {
-    X <- stats::model.matrix(stats::as.formula(paste("~", rhs)), data = dsub)
-    y <- dsub[[y_name]]
-    fit <- .ols_fit_fast(y, X)
-    cn <- colnames(X)
-    z_idx <- match(z_names, cn)
-    mu_hat <- fit$coef[z_idx]
-    omega_hat <- fit$vcov[z_idx, z_idx, drop = FALSE]
-    return(list(
-      mu_hat = as.numeric(mu_hat),
-      omega_hat = omega_hat,
-      diagnostics = list(n_subset = fit$n, p = fit$p, engine = "ols")
-    ))
-  }
-
-  if (!requireNamespace("fixest", quietly = TRUE)) {
-    stop("Package 'fixest' is required when FE are used for BPE prior learning.")
-  }
-  fml <- stats::as.formula(paste0(y_name, " ~ ", rhs, " | ", paste(all.vars(fe), collapse = " + ")))
-  fit_fe <- fixest::feols(fml, data = dsub)
-  b <- stats::coef(fit_fe)
-  V <- stats::vcov(fit_fe)
-  mu_hat <- b[z_names]
-  omega_hat <- V[z_names, z_names, drop = FALSE]
-  list(
-    mu_hat = as.numeric(mu_hat),
-    omega_hat = omega_hat,
-    diagnostics = list(n_subset = stats::nobs(fit_fe), p = length(b), engine = "fixest")
-  )
-}
-
 .embed_prior_by_names <- function(inst_names, z_names, mu_hat, omega_hat) {
   m <- length(inst_names)
   mu <- rep(0, m)
@@ -609,49 +490,4 @@ bpe_explore_subsets <- function(data,
   names(mu) <- inst_names
   dimnames(Omega) <- list(inst_names, inst_names)
   list(mu = mu, Omega = Omega, inst_names = inst_names)
-}
-
-.embed_prior_into_full_Z <- function(formula, data, z_names, mu_hat, omega_hat) {
-  parsed <- .iv_parse(formula, data)
-  .embed_prior_by_names(parsed$inst_names, z_names, mu_hat, omega_hat)
-}
-
-bpe_prior_mats <- function(y, X, Z, W = NULL, subset_idx, z_idx, fe_present = FALSE) {
-  if (!is.logical(subset_idx) || length(subset_idx) != length(y)) {
-    stop("`subset_idx` must be a logical vector with length equal to length(y).")
-  }
-  if (!any(subset_idx)) {
-    stop("BPE subset_idx selects no observations.")
-  }
-
-  y_sub <- as.numeric(y[subset_idx])
-  Z_sub <- as.matrix(Z[subset_idx, z_idx, drop = FALSE])
-  W_sub <- if (is.null(W) || ncol(W) == 0) NULL else as.matrix(W[subset_idx, , drop = FALSE])
-
-  if (is.null(W_sub)) {
-    Xfs <- Z_sub
-  } else {
-    keep_w <- setdiff(colnames(W_sub), colnames(Z_sub))
-    Xfs <- cbind(Z_sub, W_sub[, keep_w, drop = FALSE])
-  }
-  if (!fe_present) {
-    Xfs <- cbind("(Intercept)" = 1, Xfs)
-  }
-
-  fit <- .ols_fit_fast(y_sub, Xfs)
-  cn <- colnames(Xfs)
-  z_names <- colnames(Z_sub)
-  z_pos <- match(z_names, cn)
-  mu_hat <- fit$coef[z_pos]
-  omega_hat <- fit$vcov[z_pos, z_pos, drop = FALSE]
-
-  list(
-    mu = as.numeric(mu_hat),
-    Omega = omega_hat,
-    diagnostics = list(
-      n_subset = length(y_sub),
-      first_stage_p = ncol(Xfs),
-      engine = "matrix_ols"
-    )
-  )
 }

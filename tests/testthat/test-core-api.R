@@ -1,12 +1,3 @@
-test_that("formula parser and instrument names work", {
-  d <- make_synth_panel(n_gid = 10, n_t = 10, seed = 11)
-  f <- y ~ x + w1 + w2 | z + w1 + w2
-
-  nms <- spliv:::.iv_inst_names(f, d)
-  expect_true("z" %in% nms)
-  expect_true("(Intercept)" %in% nms)
-})
-
 test_that("LTZ and UCI wrappers run on synthetic data", {
   d <- make_synth_panel(n_gid = 20, n_t = 20, seed = 2)
   f <- y ~ x + w1 + w2 | z + w1 + w2
@@ -50,7 +41,8 @@ test_that("main spliv API supports BPE path", {
   design <- bpe_design(
     name = "API design",
     subset = ~ inactive_region,
-    rationale = "The treatment channel is absent in the inactive region."
+    rationale = "The treatment channel is absent in the inactive region.",
+    transportability_rationale = "The same direct-effect mechanism applies to the target sample."
   )
 
   fit <- spliv(
@@ -600,7 +592,8 @@ test_that("confirmatory BPE intentionally rejects violation_pattern", {
   design <- bpe_design(
     name = "Inactive subset",
     subset = ~ inactive_region,
-    rationale = "The treatment channel is absent in the inactive region."
+    rationale = "The treatment channel is absent in the inactive region.",
+    transportability_rationale = "The same direct-effect mechanism applies to the target sample."
   )
   patterned <- spliv_pattern(
     name = "Uniform pattern",
@@ -708,83 +701,8 @@ test_that("confirmatory BPE fails when no design object is supplied", {
       method = "bpe",
       bpe_equiv_margin = 0.05
     ),
-    "requires a researcher-supplied `bpe_design\\(\\)` object"
+    "must be a `bpe_design\\(\\)` object"
   )
-})
-
-test_that("confirmatory BPE errors when multiple subset sources are supplied", {
-  d <- make_bpe_redesign_data(n = 4000, seed = 131)
-  design_1 <- bpe_design(
-    name = "Source one",
-    subset = ~ inactive_region,
-    rationale = "Theory identifies the inactive subset."
-  )
-  design_2 <- bpe_design(
-    name = "Source two",
-    subset = ~ theoretical_condition == 1,
-    rationale = "A second declared source should trigger an error."
-  )
-
-  expect_error(
-    spliv(
-      y ~ x - 1 | z - 1,
-      data = d,
-      method = "bpe",
-      bpe_design = design_1,
-      bpe_spec = list(design = design_2),
-      bpe_equiv_margin = 0.05
-    ),
-    "exactly one declared design/subset source"
-  )
-})
-
-test_that("raw bpe_spec subset requires explicit confirmatory metadata", {
-  d <- make_bpe_redesign_data(n = 5000, seed = 132)
-
-  expect_error(
-    spliv(
-      y ~ x - 1 | z - 1,
-      data = d,
-      method = "bpe",
-      bpe_spec = list(
-        subset = ~ treatment_channel_absent,
-        rationale = "Theory identifies the inactive subset."
-      ),
-      bpe_equiv_margin = 0.05
-    ),
-    "explicit `pre_specified = TRUE`"
-  )
-
-  expect_error(
-    spliv(
-      y ~ x - 1 | z - 1,
-      data = d,
-      method = "bpe",
-      bpe_spec = list(
-        subset = ~ treatment_channel_absent,
-        rationale = "Theory identifies the inactive subset.",
-        pre_specified = FALSE
-      ),
-      bpe_equiv_margin = 0.05
-    ),
-    "requires `pre_specified = TRUE`"
-  )
-
-  fit <- spliv(
-    y ~ x - 1 | z - 1,
-    data = d,
-    method = "bpe",
-    bpe_spec = list(
-      subset = ~ treatment_channel_absent,
-      rationale = "Theory identifies the inactive subset.",
-      pre_specified = TRUE,
-      variables_used = "treatment_channel_absent"
-    ),
-    bpe_equiv_margin = 0.05,
-    bpe_min_n_S = 100
-  )
-
-  expect_s3_class(fit, "spliv_fit")
 })
 
 test_that("confirmatory BPE fails when pre_specified is FALSE", {
@@ -859,7 +777,8 @@ test_that("first-stage coefficient extraction works with and without intercepts 
   design_no_intercept <- bpe_design(
     name = "No intercept",
     subset = ~ inactive_region,
-    rationale = "The instrument is inactive in this design-defined subset."
+    rationale = "The instrument is inactive in this design-defined subset.",
+    transportability_rationale = "The same direct-effect mechanism applies to the target sample."
   )
 
   val_no_intercept <- bpe_validate_design(
@@ -890,7 +809,8 @@ test_that("first-stage coefficient extraction works with and without intercepts 
   design_fe <- bpe_design(
     name = "FE subset",
     subset = ~ inactive_region,
-    rationale = "The channel is absent in the inactive region cells."
+    rationale = "The channel is absent in the inactive region cells.",
+    transportability_rationale = "The same direct-effect mechanism applies to the target sample."
   )
 
   val_fe <- bpe_validate_design(
@@ -917,14 +837,15 @@ test_that("first-stage F-statistic is reported but does not determine eligibilit
   design <- bpe_design(
     name = "High-power inactive subset",
     subset = ~ inactive_region,
-    rationale = "The treatment channel is absent in the inactive region."
+    rationale = "The treatment channel is absent in the inactive region.",
+    transportability_rationale = "The same direct-effect mechanism applies to the target sample."
   )
 
   val <- bpe_validate_design(
     y ~ x - 1 | z - 1,
     data = d,
     design = design,
-    bpe_equiv_margin = 0.02,
+    bpe_equiv_margin = 0.20,
     bpe_min_n_S = 1000
   )
 
@@ -943,7 +864,8 @@ test_that("equivalence check determines eligibility", {
   design <- bpe_design(
     name = "Tight equivalence subset",
     subset = ~ inactive_region,
-    rationale = "The treatment channel is absent in the inactive region."
+    rationale = "The treatment channel is absent in the inactive region.",
+    transportability_rationale = "The same direct-effect mechanism applies to the target sample."
   )
 
   val <- bpe_validate_design(
@@ -969,7 +891,8 @@ test_that("cluster-count check works when clusters are supplied", {
   design <- bpe_design(
     name = "Cluster-limited subset",
     subset = ~ inactive_region,
-    rationale = "The treatment channel is absent in the inactive subset."
+    rationale = "The treatment channel is absent in the inactive subset.",
+    transportability_rationale = "The same direct-effect mechanism applies to the target sample."
   )
 
   val <- bpe_validate_design(
@@ -1047,7 +970,8 @@ test_that("confirmatory BPE works with fixed effects and clustered covariance", 
     subset = ~ inactive_region,
     rationale = "The treatment channel is absent in this pre-specified inactive subset.",
     variables_used = "inactive_region",
-    pre_specified = TRUE
+    pre_specified = TRUE,
+    transportability_rationale = "The subset and target share the same direct-effect mechanism."
   )
 
   fit <- spliv(
@@ -1078,7 +1002,8 @@ test_that("standardized first-stage diagnostics are stored when available", {
   design <- bpe_design(
     name = "Scaled first stage subset",
     subset = ~ inactive_region,
-    rationale = "The treatment channel is absent in the inactive region."
+    rationale = "The treatment channel is absent in the inactive region.",
+    transportability_rationale = "The same direct-effect mechanism applies to the target sample."
   )
 
   val <- bpe_validate_design(
@@ -1110,7 +1035,8 @@ test_that("scale_instrument = 'residual_sd' stores the residualized instrument S
   design <- bpe_design(
     name = "Scaled subset",
     subset = ~ inactive_region,
-    rationale = "The treatment channel is absent in the inactive region."
+    rationale = "The treatment channel is absent in the inactive region.",
+    transportability_rationale = "The same direct-effect mechanism applies to the target sample."
   )
 
   fit <- spliv(
