@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">spliv</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -78,22 +78,21 @@
 <span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">240</span></span>
 <span><span class="va">z</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
 <span><span class="va">w</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">exposure</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">pnorm</a></span><span class="op">(</span><span class="va">w</span><span class="op">)</span></span>
 <span><span class="va">inactive</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span> <span class="op">&lt;=</span> <span class="va">n</span> <span class="op">/</span> <span class="fl">2</span></span>
 <span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">inactive</span>, <span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span> <span class="op">*</span> <span class="va">z</span> <span class="op">+</span> <span class="fl">0.4</span> <span class="op">*</span> <span class="va">w</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
-<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fl">1.2</span> <span class="op">*</span> <span class="va">x</span> <span class="op">+</span> <span class="fl">0.25</span> <span class="op">*</span> <span class="va">w</span> <span class="op">+</span> <span class="fl">0.15</span> <span class="op">*</span> <span class="va">z</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fl">1.2</span> <span class="op">*</span> <span class="va">x</span> <span class="op">+</span> <span class="fl">0.25</span> <span class="op">*</span> <span class="va">w</span> <span class="op">+</span> <span class="fl">0.15</span> <span class="op">*</span> <span class="va">exposure</span> <span class="op">*</span> <span class="va">z</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">y</span>, <span class="va">x</span>, <span class="va">z</span>, <span class="va">w</span>, <span class="va">inactive</span><span class="op">)</span></span>
+<span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">y</span>, <span class="va">x</span>, <span class="va">z</span>, <span class="va">w</span>, <span class="va">exposure</span>, <span class="va">inactive</span><span class="op">)</span></span>
 <span><span class="va">f</span> <span class="op">&lt;-</span> <span class="va">y</span> <span class="op">~</span> <span class="va">x</span> <span class="op">+</span> <span class="va">w</span> <span class="op">|</span> <span class="va">z</span> <span class="op">+</span> <span class="va">w</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="baseline-iv-estimate">Baseline IV estimate<a class="anchor" aria-label="anchor" href="#baseline-iv-estimate"></a>
 </h3>
-<p>Setting <code>delta = 0</code> reproduces the conventional IV confidence interval under strict exclusion.</p>
+<p>With no method or bound supplied, <code><a href="reference/spliv.html">spliv()</a></code> uses UCI at <code>delta = 0</code> and reproduces the conventional IV confidence interval under strict exclusion.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">baseline</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/spliv.html">spliv</a></span><span class="op">(</span></span>
 <span>  <span class="va">f</span>,</span>
 <span>  <span class="va">d</span>,</span>
-<span>  method <span class="op">=</span> <span class="st">"uci"</span>,</span>
-<span>  delta <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  vcov <span class="op">=</span> <span class="st">"hc1"</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -102,7 +101,7 @@
 <div class="section level3">
 <h3 id="uniform-uci-sensitivity">Uniform UCI sensitivity<a class="anchor" aria-label="anchor" href="#uniform-uci-sensitivity"></a>
 </h3>
-<p>Union-of-confidence-intervals (UCI) sensitivity allows the excluded instrument’s direct effect to vary over a bounded interval.</p>
+<p>Union-of-confidence-intervals (UCI) sensitivity allows the excluded instrument’s direct effect to vary over a bounded interval. On the default scale, <code>delta</code> is an outcome-unit direct effect for a one-residual-SD shift in the instrument.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">uniform</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/spliv.html">spliv</a></span><span class="op">(</span></span>
 <span>  <span class="va">f</span>,</span>
@@ -122,9 +121,9 @@
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pattern</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/spliv_pattern.html">spliv_pattern</a></span><span class="op">(</span></span>
 <span>  name <span class="op">=</span> <span class="st">"Exposure pattern"</span>,</span>
-<span>  pattern <span class="op">=</span> <span class="op">~</span> <span class="va">w</span>,</span>
+<span>  pattern <span class="op">=</span> <span class="op">~</span> <span class="va">exposure</span>,</span>
 <span>  rationale <span class="op">=</span> <span class="st">"The alternative channel is expected to be stronger at higher exposure."</span>,</span>
-<span>  variables_used <span class="op">=</span> <span class="st">"w"</span>,</span>
+<span>  variables_used <span class="op">=</span> <span class="st">"exposure"</span>,</span>
 <span>  pattern_type <span class="op">=</span> <span class="st">"theory_defined"</span>,</span>
 <span>  normalize <span class="op">=</span> <span class="st">"max_abs"</span></span>
 <span><span class="op">)</span></span>
@@ -172,7 +171,7 @@
 <div class="section level3">
 <h3 id="confirmatory-bpe">Confirmatory BPE<a class="anchor" aria-label="anchor" href="#confirmatory-bpe"></a>
 </h3>
-<p>Confirmatory Beyond Plausibly Exogenous (BPE) analysis begins with a pre-specified, outcome-independent instrument-inactive subset. The package validates the proposed design and estimates the BPE model only when the eligibility diagnostics pass.</p>
+<p>Confirmatory Beyond Plausibly Exogenous (BPE) analysis begins with a pre-specified, outcome-independent instrument-inactive subset and an explicit transportability rationale. The package validates the proposed design and estimates the BPE model only when the eligibility diagnostics pass. The default <code>sampling</code> transport carries the estimated reduced-form sampling covariance; <code>conservative</code> adds a pre-specified covariance inflation.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">design</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/bpe_design.html">bpe_design</a></span><span class="op">(</span></span>
 <span>  name <span class="op">=</span> <span class="st">"Theory-defined inactive subset"</span>,</span>
@@ -184,10 +183,10 @@
 <span>  transportability_rationale <span class="op">=</span> <span class="st">"The subset direct effect is informative for the target sample."</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># This is a scale-aware illustrative margin for the synthetic example. In a</span></span>
-<span><span class="co"># substantive analysis, pre-specify the margin from the scientific design; do</span></span>
-<span><span class="co"># not tune it to make BPE pass.</span></span>
-<span><span class="va">bpe_margin</span> <span class="op">&lt;-</span> <span class="fl">0.25</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">resid</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/lm.html" class="external-link">lm</a></span><span class="op">(</span><span class="va">x</span> <span class="op">~</span> <span class="va">w</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co"># This illustrative margin allows a first-stage effect of 0.25 residual</span></span>
+<span><span class="co"># treatment SD per one-residual-SD instrument shift. In substantive work,</span></span>
+<span><span class="co"># pre-specify the margin; do not tune it to make BPE pass.</span></span>
+<span><span class="va">bpe_margin</span> <span class="op">&lt;-</span> <span class="fl">0.25</span></span>
 <span></span>
 <span><span class="va">validation</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/bpe_validate_design.html">bpe_validate_design</a></span><span class="op">(</span></span>
 <span>  <span class="va">f</span>,</span>

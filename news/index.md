@@ -1,15 +1,42 @@
 # Changelog
 
-## spliv 0.2.0
+## spliv 0.2.1
 
 - [`spliv()`](https://koren6684.github.io/spliv/reference/spliv.md) is
   the sole recommended primary estimator.
 - Fit objects now use class `spliv_fit`.
-- Accidental legacy aliases introduced in 0.1.1 were removed from the
-  public API, including the old `plausexog()`/`conley_*()` names and
-  implementation helper exports.
-- No statistical estimators or numerical results were intentionally
-  changed.
+- Accidental legacy aliases present in the 0.1.x interface were removed
+  from the public API, including the old `plausexog()`/`conley_*()`
+  names and implementation helper exports.
+- [`spliv()`](https://koren6684.github.io/spliv/reference/spliv.md) now
+  defaults to conventional UCI at `delta = 0` when no sensitivity method
+  or bound is supplied, and obsolete BPE arguments were removed.
+- Confirmatory BPE equivalence intervals are now compared on the
+  documented, unit-invariant scale: residual treatment standard
+  deviations per one- residual-SD instrument shift. Raw and standardized
+  diagnostics are retained separately. This corrects 0.1.x eligibility
+  calculations that compared a raw coefficient interval with a
+  scale-aware margin.
+- Confirmatory BPE now requires a non-empty transportability rationale
+  and uses the aligned `sampling` or `conservative` covariance modes in
+  standalone validation and final estimation.
+- Exploratory subset diagnostics retain first-stage F-statistics as
+  descriptive information but no longer expose an F-threshold selection
+  control.
+- Numerical-equivalence, BPE invariance, fixed-effect,
+  clustered-inference, edge-case, and plotting tests were expanded. No
+  treatment-effect formula or sensitivity estimand was intentionally
+  changed apart from the BPE equivalence-scale correction above.
+- A fair 72-case equivalent-computation benchmark was added under
+  `dev/`. SPLIV was faster in all no-fixed-effect cases and smaller
+  two-way-FE cases, but slower and more allocation-intensive in the
+  `n = 50,000` two-way-FE cases; no unconditional performance claim is
+  made.
+
+## spliv 0.2.0
+
+- GitHub-only public API cleanup release. It was superseded by version
+  0.2.1 before the corresponding CRAN update.
 
 ## spliv 0.1.1
 

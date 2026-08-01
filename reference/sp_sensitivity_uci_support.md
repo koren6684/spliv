@@ -74,3 +74,15 @@ sp_sensitivity_uci_support(
 ## Value
 
 Data frame with sensitivity path.
+
+## Examples
+
+``` r
+set.seed(11)
+d <- data.frame(y = rnorm(60), x = rnorm(60), z = rnorm(60))
+sp_sensitivity_uci_support(y ~ x | z, d, term = "x", inst_vary = "z",
+  delta_grid = c(0, 0.1), grid = 5, scale_instrument = "none")
+#>   delta estimate conf.low conf.high             method
+#> 1   0.0       NA -3.09931  1.414995 UCI (Support only)
+#> 2   0.1       NA -5.23625  2.204471 UCI (Support only)
+```

@@ -17,7 +17,6 @@ bpe_explore_subsets(
   rules = NULL,
   seed = 1,
   min_n_S = NULL,
-  max_F_S = NULL,
   min_varZ_S = NULL,
   return_all = TRUE
 )
@@ -49,11 +48,6 @@ bpe_explore_subsets(
 - min_n_S:
 
   Optional exploratory screen for subset size.
-
-- max_F_S:
-
-  Deprecated exploratory screen for the first-stage F-statistic. The
-  first-stage F-statistic is reported as a diagnostic only.
 
 - min_varZ_S:
 
@@ -88,6 +82,6 @@ suppressWarnings(bpe_explore_subsets(
   d, y ~ x | z, rules = list(inactive = ~ inactive)))
 #>       rule candidate_type available n_S share_S   varZ_S       F_S screen_n_ok
 #> 1 inactive        formula      TRUE  20     0.5 1.027887 0.9819404          NA
-#>   screen_varZ_ok screen_F_ok message       subset
-#> 1             NA          NA         TRUE, TR....
+#>   screen_varZ_ok message       subset
+#> 1             NA         TRUE, TR....
 ```

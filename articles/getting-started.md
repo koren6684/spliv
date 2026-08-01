@@ -3,57 +3,60 @@
 ## Baseline IV and uniform sensitivity
 
 The [`spliv()`](https://koren6684.github.io/spliv/reference/spliv.md)
-estimator accepts the usual IV formula `y ~ X | Z`. A baseline fit with
-`delta = 0` is an ordinary IV calculation, while a positive `delta`
-allows a bounded uniform direct effect.
+estimator accepts the usual IV formula `y ~ X | Z`. Ordinary exogenous
+controls belong on both sides, as in `y ~ x + w | z + w`. With no method
+or bound supplied, the baseline is UCI at `delta = 0`; a positive
+`delta` allows a bounded uniform direct effect. On the default scale,
+`delta` is an outcome-unit direct effect for a one-residual-SD
+instrument shift.
 
 ``` r
 
-baseline <- spliv(f, d, method = "uci", delta = 0, vcov = "hc1")
+baseline <- spliv(f, d, vcov = "hc1")
 baseline$estimates
-#>          term    conf.low  conf.high
-#> 1 (Intercept) -0.18384632 0.09088447
-#> 2           x  1.29870349 1.84425108
-#> 3           w -0.01990612 0.28613695
+#>          term   conf.low conf.high
+#> 1 (Intercept) -0.1605207 0.1107809
+#> 2           x  0.9391974 1.6391314
+#> 3           w -0.0851201 0.3415725
 uniform <- spliv(f, d, method = "uci", delta = 0.20, vcov = "hc1",
                  grid = list(steps = 9))
 uniform$estimates
 #>          term   conf.low conf.high
-#> 1 (Intercept) -0.2487226 0.1183848
-#> 2           x  0.8961868 2.3416858
-#> 3           w -0.2070957 0.4255989
+#> 1 (Intercept) -0.2340356 0.1964620
+#> 2           x  0.3485695 2.2672576
+#> 3           w -0.3722147 0.6281993
 ```
 
 ## A patterned UCI/LTZ analysis
 
 Patterns are explicit objects with a substantive rationale. Here the
-direct effect is allowed to be larger where the synthetic exposure `w`
-is larger.
+direct effect is allowed to be larger where the synthetic exposure is
+larger.
 
 ``` r
 
 pattern <- spliv_pattern(
-  name = "Exposure pattern", pattern = ~ w,
+  name = "Exposure pattern", pattern = ~ exposure,
   rationale = "The alternative channel is stronger at higher exposure.",
-  variables_used = "w", pattern_type = "theory_defined",
+  variables_used = "exposure", pattern_type = "theory_defined",
   normalize = "max_abs"
 )
 spliv_eval_pattern(pattern, d)[1:5]
-#> [1]  0.083746179  0.035128314  0.380408513  0.233287898 -0.001435305
+#> [1] 0.23328645 0.84214797 0.89724528 0.89549398 0.08382179
 patterned_uci <- spliv(f, d, method = "uci", delta = 0.20, vcov = "hc1",
                        violation_pattern = pattern, grid = list(steps = 9))
 patterned_ltz <- spliv(f, d, method = "ltz", delta = 0.20, vcov = "hc1",
                        violation_pattern = pattern)
 patterned_uci$estimates
-#>          term    conf.low  conf.high
-#> 1 (Intercept) -0.18444170 0.09195752
-#> 2           x  1.29090596 1.85535775
-#> 3           w -0.02698832 0.30162026
+#>          term   conf.low conf.high
+#> 1 (Intercept) -0.1888420 0.1445298
+#> 2           x  0.6828480 1.9134147
+#> 3           w -0.2138458 0.4704673
 patterned_ltz$estimates
-#>          term    estimate  std.error    conf.low  conf.high
-#> 1 (Intercept) -0.04648093 0.07008608 -0.18384711 0.09088526
-#> 2           x  1.57147728 0.13918270  1.29868421 1.84427036
-#> 3           w  0.13311542 0.07874347 -0.02121894 0.28744978
+#>          term    estimate  std.error   conf.low conf.high
+#> 1 (Intercept) -0.02486991 0.07400209 -0.1699114 0.1201715
+#> 2           x  1.28916439 0.30312599  0.6950484 1.8832804
+#> 3           w  0.12822619 0.16031139 -0.1859784 0.4424307
 ```
 
 ## Sensitivity paths and tipping points
@@ -68,13 +71,13 @@ path <- spliv_sensitivity_path(
   vcov = "hc1", violation_pattern = pattern
 )
 head(path)
-#>          term delta method    estimate    conf_low  conf_high contains_zero
-#> 1 (Intercept)  0.00    uci -0.04648093 -0.18384632 0.09088447          TRUE
-#> 2           x  0.00    uci  1.57147728  1.29870349 1.84425108         FALSE
-#> 3           w  0.00    uci  0.13311542 -0.01990612 0.28613695          TRUE
-#> 4 (Intercept)  0.05    uci -0.04648093 -0.18393310 0.09109067          TRUE
-#> 5           x  0.05    uci  1.57147728  1.29713579 1.84664606         FALSE
-#> 6           w  0.05    uci  0.13311542 -0.02147632 0.28982073          TRUE
+#>          term delta method    estimate   conf_low conf_high contains_zero
+#> 1 (Intercept)  0.00    uci -0.02486991 -0.1605207 0.1107809          TRUE
+#> 2           x  0.00    uci  1.28916439  0.9391974 1.6391314         FALSE
+#> 3           w  0.00    uci  0.12822619 -0.0851201 0.3415725          TRUE
+#> 4 (Intercept)  0.05    uci -0.02486991 -0.1666758 0.1183381          TRUE
+#> 5           x  0.05    uci  1.28916439  0.8790158 1.7040397         FALSE
+#> 6           w  0.05    uci  0.12822619 -0.1152324 0.3717291          TRUE
 #>       pattern_name   pattern_type violation_pattern_used scale_instrument nobs
 #> 1 Exposure pattern theory_defined                   TRUE      residual_sd  240
 #> 2 Exposure pattern theory_defined                   TRUE      residual_sd  240
@@ -83,12 +86,12 @@ head(path)
 #> 5 Exposure pattern theory_defined                   TRUE      residual_sd  240
 #> 6 Exposure pattern theory_defined                   TRUE      residual_sd  240
 #>   se theta_min theta_max baseline_estimate baseline_conf_low baseline_conf_high
-#> 1 NA      0.00      0.00       -0.04648093       -0.18384632         0.09088447
-#> 2 NA      0.00      0.00        1.57147728        1.29870349         1.84425108
-#> 3 NA      0.00      0.00        0.13311542       -0.01990612         0.28613695
-#> 4 NA     -0.05      0.05       -0.04648093       -0.18384632         0.09088447
-#> 5 NA     -0.05      0.05        1.57147728        1.29870349         1.84425108
-#> 6 NA     -0.05      0.05        0.13311542       -0.01990612         0.28613695
+#> 1 NA      0.00      0.00       -0.02486991        -0.1605207          0.1107809
+#> 2 NA      0.00      0.00        1.28916439         0.9391974          1.6391314
+#> 3 NA      0.00      0.00        0.12822619        -0.0851201          0.3415725
+#> 4 NA     -0.05      0.05       -0.02486991        -0.1605207          0.1107809
+#> 5 NA     -0.05      0.05        1.28916439         0.9391974          1.6391314
+#> 6 NA     -0.05      0.05        0.12822619        -0.0851201          0.3415725
 #>   crosses_baseline_sign significant_at_level error
 #> 1                  TRUE                FALSE  <NA>
 #> 2                 FALSE                 TRUE  <NA>
@@ -111,8 +114,11 @@ spliv_tipping_point(path)
 ## Confirmatory BPE design and validation
 
 BPE uses an outcome-independent subset specified before examining the
-outcome analysis. Validation reports eligibility diagnostics; it does
-not search across candidate subgroups.
+outcome analysis and requires a non-empty transportability rationale.
+Validation reports eligibility diagnostics; it does not search across
+candidate subgroups. The default `sampling` transport uses the estimated
+reduced-form sampling covariance; `conservative` adds a pre-specified
+covariance inflation.
 
 ``` r
 
@@ -123,33 +129,33 @@ design <- bpe_design(
   pre_specified = TRUE,
   transportability_rationale = "The subset direct effect is informative for the target sample."
 )
+# Illustrative synthetic margin: 0.25 residual treatment SD per
+# one-residual-SD instrument shift. In substantive work, pre-specify the
+# margin rather than tuning it to obtain BPE eligibility.
+bpe_margin <- 0.25
 validation <- bpe_validate_design(
   f, d, design = design, vcov = "hc1",
   bpe_min_n_S = 40,
-  bpe_equiv_margin = 0.25 * sd(resid(lm(x ~ w)))
+  bpe_equiv_margin = bpe_margin
 )
 validation[c("n_S", "equivalence_passed", "eligibility_passed")]
 #> $n_S
 #> [1] 120
 #> 
 #> $equivalence_passed
-#> [1] TRUE
+#> [1] FALSE
 #> 
 #> $eligibility_passed
-#> [1] TRUE
+#> [1] FALSE
 
-# Illustrative synthetic scale only. In a substantive analysis, pre-specify
-# the equivalence margin from the scientific design rather than tuning it to
-# obtain BPE eligibility.
-bpe_margin <- 0.25 * sd(resid(lm(x ~ w)))
 bpe_fit <- spliv(f, d, method = "bpe", bpe_design = design,
                  vcov = "hc1", bpe_min_n_S = 40,
                  bpe_equiv_margin = bpe_margin)
 bpe_fit$estimates
-#>          term    estimate  std.error    conf.low conf.high
-#> 1 (Intercept) -0.04159845 0.07364906 -0.18594795 0.1027510
-#> 2           x  1.51206522 0.30855850  0.90730168 2.1168288
-#> 3           w  0.15414021 0.12487183 -0.09060407 0.3988845
+#>          term estimate std.error conf.low conf.high
+#> 1 (Intercept)       NA        NA       NA        NA
+#> 2           x       NA        NA       NA        NA
+#> 3           w       NA        NA       NA        NA
 ```
 
 [`bpe_explore_subsets()`](https://koren6684.github.io/spliv/reference/bpe_explore_subsets.md)

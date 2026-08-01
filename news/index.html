@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">spliv</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,16 +33,26 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/koren6684/spliv/blob/v0.2.0/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/koren6684/spliv/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.2.0" id="spliv-020">spliv 0.2.0<a class="anchor" aria-label="anchor" href="#spliv-020"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.2.1" id="spliv-021">spliv 0.2.1<a class="anchor" aria-label="anchor" href="#spliv-021"></a></h2>
 <ul><li>
 <code><a href="../reference/spliv.html">spliv()</a></code> is the sole recommended primary estimator.</li>
 <li>Fit objects now use class <code>spliv_fit</code>.</li>
-<li>Accidental legacy aliases introduced in 0.1.1 were removed from the public API, including the old <code>plausexog()</code>/<code>conley_*()</code> names and implementation helper exports.</li>
-<li>No statistical estimators or numerical results were intentionally changed.</li>
+<li>Accidental legacy aliases present in the 0.1.x interface were removed from the public API, including the old <code>plausexog()</code>/<code>conley_*()</code> names and implementation helper exports.</li>
+<li>
+<code><a href="../reference/spliv.html">spliv()</a></code> now defaults to conventional UCI at <code>delta = 0</code> when no sensitivity method or bound is supplied, and obsolete BPE arguments were removed.</li>
+<li>Confirmatory BPE equivalence intervals are now compared on the documented, unit-invariant scale: residual treatment standard deviations per one- residual-SD instrument shift. Raw and standardized diagnostics are retained separately. This corrects 0.1.x eligibility calculations that compared a raw coefficient interval with a scale-aware margin.</li>
+<li>Confirmatory BPE now requires a non-empty transportability rationale and uses the aligned <code>sampling</code> or <code>conservative</code> covariance modes in standalone validation and final estimation.</li>
+<li>Exploratory subset diagnostics retain first-stage F-statistics as descriptive information but no longer expose an F-threshold selection control.</li>
+<li>Numerical-equivalence, BPE invariance, fixed-effect, clustered-inference, edge-case, and plotting tests were expanded. No treatment-effect formula or sensitivity estimand was intentionally changed apart from the BPE equivalence-scale correction above.</li>
+<li>A fair 72-case equivalent-computation benchmark was added under <code>dev/</code>. SPLIV was faster in all no-fixed-effect cases and smaller two-way-FE cases, but slower and more allocation-intensive in the <code>n = 50,000</code> two-way-FE cases; no unconditional performance claim is made.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.2.0" id="spliv-020">spliv 0.2.0<a class="anchor" aria-label="anchor" href="#spliv-020"></a></h2>
+<ul><li>GitHub-only public API cleanup release. It was superseded by version 0.2.1 before the corresponding CRAN update.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.1" id="spliv-011">spliv 0.1.1<a class="anchor" aria-label="anchor" href="#spliv-011"></a></h2><p class="text-muted">CRAN release: 2026-07-29</p>

@@ -11,7 +11,7 @@ theoretically motivated instrument-inactive subset."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">spliv</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -37,7 +37,7 @@ theoretically motivated instrument-inactive subset."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Create a Confirmatory BPE Design Object</h1>
-      <small class="dont-index">Source: <a href="https://github.com/koren6684/spliv/blob/v0.2.0/R/bpe_design.R" class="external-link"><code>R/bpe_design.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/koren6684/spliv/blob/main/R/bpe_design.R" class="external-link"><code>R/bpe_design.R</code></a></small>
       <div class="d-none name"><code>bpe_design.Rd</code></div>
     </div>
 
@@ -96,8 +96,10 @@ requires <code>TRUE</code>.</p></dd>
 
 
 <dt id="arg-transportability-rationale">transportability_rationale<a class="anchor" aria-label="anchor" href="#arg-transportability-rationale"></a></dt>
-<dd><p>Optional description of why the direct
-effect learned in the subset may be informative for the target sample.</p></dd>
+<dd><p>Optional at construction time. A non-empty
+description of why the direct effect learned in the subset may be
+informative for the target sample is required for confirmatory validation
+and estimation.</p></dd>
 
 
 <dt id="arg-notes">notes<a class="anchor" aria-label="anchor" href="#arg-notes"></a></dt>
@@ -114,7 +116,8 @@ effect learned in the subset may be informative for the target sample.</p></dd>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">design</span> <span class="op">&lt;-</span> <span class="fu">bpe_design</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  <span class="st">"Inactive subset"</span>, <span class="op">~</span> <span class="va">inactive</span>,</span></span>
 <span class="r-in"><span>  rationale <span class="op">=</span> <span class="st">"The treatment channel is absent in this subset."</span>,</span></span>
-<span class="r-in"><span>  variables_used <span class="op">=</span> <span class="st">"inactive"</span>, pre_specified <span class="op">=</span> <span class="cn">TRUE</span></span></span>
+<span class="r-in"><span>  variables_used <span class="op">=</span> <span class="st">"inactive"</span>, pre_specified <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
+<span class="r-in"><span>  transportability_rationale <span class="op">=</span> <span class="st">"The same direct-effect mechanism applies to the target sample."</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="bpe_eval_subset.html">bpe_eval_subset</a></span><span class="op">(</span><span class="va">design</span>, <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>inactive <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="cn">TRUE</span>, <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1]  TRUE FALSE</span>

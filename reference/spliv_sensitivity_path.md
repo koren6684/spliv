@@ -45,8 +45,7 @@ spliv_sensitivity_path(
 
   Optional
   [`spliv_pattern()`](https://koren6684.github.io/spliv/reference/spliv_pattern.md)
-  object. If omitted, the path uses the package's backward-compatible
-  uniform direct-effect pattern.
+  object. If omitted, the path uses a uniform direct-effect pattern.
 
 - stop_on_error:
 

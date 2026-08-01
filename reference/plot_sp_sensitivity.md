@@ -7,6 +7,7 @@ Plot Patterned Sensitivity Output or a Fitted Object
 ``` r
 plot_sp_sensitivity(
   df_plot,
+  term = NULL,
   ylab = "Effect (beta)",
   main = "Plausibly Exogenous IV Sensitivity",
   ...
@@ -19,6 +20,12 @@ plot_sp_sensitivity(
 
   Data frame returned by a sensitivity helper or a `spliv_fit` object.
 
+- term:
+
+  Optional term to plot when `df_plot` is a sensitivity-path object. If
+  omitted, the first term is plotted (with a warning for multiple
+  terms).
+
 - ylab:
 
   Y-axis label.
@@ -29,7 +36,8 @@ plot_sp_sensitivity(
 
 - ...:
 
-  Unused.
+  Additional graphics arguments forwarded to the sensitivity-path
+  plotting method; ignored for fitted objects and ordinary data frames.
 
 ## Value
 

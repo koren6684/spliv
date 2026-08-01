@@ -13,27 +13,22 @@ spliv(
   fe_engine = c("fixest", "lfe"),
   vcov = c("iid", "hc1", "cluster"),
   cluster = NULL,
-  method = c("ltz", "uci", "bpe"),
+  method = c("uci", "ltz", "bpe"),
   prior = NULL,
   delta = NULL,
   violation_pattern = NULL,
-  bpe = FALSE,
   bpe_design = NULL,
-  bpe_spec = list(design = NULL, subset = NULL, z_names = NULL),
   bpe_kappa = 1,
-  bpe_omega = NULL,
   bpe_min_n_S = 2000,
   bpe_min_clusters_S = 30,
-  bpe_max_F_S = NULL,
   bpe_min_varZ_S = 1e-06,
   bpe_equiv_margin = NULL,
   bpe_equiv_level = 0.95,
-  bpe_transport = c("sampling", "none", "conservative"),
+  bpe_transport = c("sampling", "conservative"),
   bpe_transport_kappa = 0,
   bpe_not_applicable = c("na", "error"),
   scale_instrument = c("residual_sd", "none"),
-  grid = list(),
-  ...
+  grid = list()
 )
 ```
 
@@ -41,7 +36,8 @@ spliv(
 
 - formula:
 
-  IV formula `y ~ X | Z`.
+  IV formula `y ~ X | Z`. Ordinary exogenous controls must appear on
+  both sides, for example `y ~ x + w | z + w`.
 
 - data:
 
@@ -65,7 +61,8 @@ spliv(
 
 - method:
 
-  One of `"ltz"`, `"uci"`, or `"bpe"`.
+  One of `"uci"`, `"ltz"`, or `"bpe"`. The default is the conventional
+  UCI analysis.
 
 - prior:
 
@@ -76,51 +73,33 @@ spliv(
 - delta:
 
   Optional non-negative scalar sensitivity magnitude. With
-  `method = "uci"`, `delta` implies theta bounds `[-delta, +delta]`
-  unless explicit bounds are supplied in `grid`. With `method = "ltz"`
-  and no explicit `prior`, `delta` induces a zero-mean normal LTZ prior.
+  `scale_instrument = "residual_sd"`, delta is the direct outcome effect
+  of a one-residual-SD instrument shift. With
+  `scale_instrument = "none"`, it is the raw direct-effect coefficient.
+  For UCI, delta supplies symmetric bounds `[-delta, +delta]`; for LTZ
+  without an explicit prior, it is the standard deviation of a zero-mean
+  normal direct-effect prior.
 
 - violation_pattern:
 
   Optional
   [`spliv_pattern()`](https://koren6684.github.io/spliv/reference/spliv_pattern.md)
   object describing how the direct effect of the instrument may vary
-  across observations. If omitted, LTZ/UCI retain the package's
-  backward-compatible uniform direct-effect behavior. This argument is
-  currently supported for LTZ and UCI, but not for confirmatory BPE.
-
-- bpe:
-
-  Logical; when `TRUE`, learn prior moments from a confirmatory
-  [`bpe_design()`](https://koren6684.github.io/spliv/reference/bpe_design.md)
-  and run LTZ.
+  across observations. If omitted, LTZ/UCI use the uniform direct-effect
+  behavior. This argument is currently supported for LTZ and UCI, but
+  not for confirmatory BPE.
 
 - bpe_design:
 
-  Optional
+  A pre-specified
   [`bpe_design()`](https://koren6684.github.io/spliv/reference/bpe_design.md)
-  object for confirmatory BPE.
-
-- bpe_spec:
-
-  Optional list. Prefer `bpe_spec = list(design = my_design)`. For
-  backward compatibility, `bpe_spec$subset` may also be supplied, but it
-  must represent an explicit researcher-supplied subset and should be
-  paired with a non-empty `rationale`, explicit `pre_specified = TRUE`,
-  and any relevant metadata such as `variables_used` or `subset_type`.
-  Supply exactly one confirmatory subset source: `bpe_design`,
-  `bpe_spec$design`, or `bpe_spec$subset`. Exploratory `subset_rule`
-  inputs are not accepted for confirmatory estimation.
+  object for confirmatory BPE. A non-empty subset rationale and
+  transportability rationale are required when `method = "bpe"`.
 
 - bpe_kappa:
 
   Positive scalar multiplier applied to the confirmatory BPE covariance
   after transport adjustment.
-
-- bpe_omega:
-
-  Deprecated. Confirmatory BPE now uses the full reduced-form covariance
-  from the subset together with `bpe_transport`.
 
 - bpe_min_n_S:
 
@@ -131,11 +110,6 @@ spliv(
   Minimum number of clusters required in subset `S` when
   `vcov = "cluster"`. Default `30`.
 
-- bpe_max_F_S:
-
-  Deprecated. The first-stage F-statistic is reported for diagnostics
-  only and no longer determines confirmatory BPE eligibility.
-
 - bpe_min_varZ_S:
 
   Minimum residualized instrument variance required in subset `S`.
@@ -143,8 +117,12 @@ spliv(
 
 - bpe_equiv_margin:
 
-  Researcher-specified first-stage equivalence margin. Confirmatory BPE
-  currently supports exactly one instrument.
+  Researcher-specified first-stage equivalence margin. With
+  `scale_instrument = "residual_sd"`, the margin is measured in residual
+  treatment standard deviations per one-residual-SD instrument shift.
+  With `scale_instrument = "none"`, it is on the raw first-stage
+  coefficient scale. Confirmatory BPE currently supports one treatment
+  and one instrument.
 
 - bpe_equiv_level:
 
@@ -152,7 +130,9 @@ spliv(
 
 - bpe_transport:
 
-  One of `"none"`, `"sampling"`, or `"conservative"`.
+  One of `"sampling"` or `"conservative"`. Sampling uses the estimated
+  reduced-form sampling covariance; conservative adds the inflation
+  controlled by `bpe_transport_kappa`.
 
 - bpe_transport_kappa:
 
@@ -170,22 +150,23 @@ spliv(
 
 - grid:
 
-  List controlling UCI bounds or other tuning parameters. For
-  backward-compatible scalar UCI, if `grid$delta` is supplied and
-  `grid$gmin`/`grid$gmax` are omitted, the package interprets `delta` as
-  a direct-effect bound of `[-delta, +delta]` under the chosen
-  `scale_instrument`. When `violation_pattern` is supplied, `grid$delta`
-  instead refers to theta bounds over the pattern-scaled direct effect.
-
-- ...:
-
-  Reserved.
+  List controlling UCI bounds or other tuning parameters. For scalar
+  UCI, if `grid$delta` is supplied and `grid$gmin`/`grid$gmax` are
+  omitted, the package interprets `delta` as a direct-effect bound of
+  `[-delta, +delta]` under the chosen `scale_instrument`. When
+  `violation_pattern` is supplied, `grid$delta` instead refers to theta
+  bounds over the pattern-scaled direct effect.
 
 ## Value
 
 Object of class `spliv_fit`.
 
 ## Details
+
+UCI is the union of conventional IV confidence intervals over the
+specified direct-effect bounds. LTZ propagates a local-to-zero prior
+mean and covariance for the direct effect into the IV estimate and
+uncertainty.
 
 `spliv` implements patterned sensitivity analysis for exclusion
 violations in IV designs with fixed effects or other residualization
@@ -209,8 +190,9 @@ excluded instrument, and one researcher-specified pattern at a time.
 Confirmatory BPE is not a subgroup-search procedure. The researcher must
 supply a pre-specified
 [`bpe_design()`](https://koren6684.github.io/spliv/reference/bpe_design.md)
-object, the package validates that subset, and BPE proceeds only if the
-confirmatory eligibility checks pass.
+object, the package validates that subset, documents why its direct
+effect is transportable to the target sample, and BPE proceeds only if
+the confirmatory eligibility checks pass.
 
 The first-stage F-statistic is still reported for diagnostics, but
 confirmatory BPE eligibility is determined by the pre-specification
@@ -225,10 +207,10 @@ and can optionally be inflated via `bpe_transport`.
 ``` r
 set.seed(1)
 d <- data.frame(y = rnorm(60), x = rnorm(60), z = rnorm(60), w = rnorm(60))
-fit <- spliv(y ~ x + w | z + w, d, method = "uci", delta = 0.1)
+fit <- spliv(y ~ x + w | z + w, d)
 fit$estimates
-#>          term    conf.low conf.high
-#> 1 (Intercept)  -0.8544988  1.363666
-#> 2           x -10.1507140  7.661939
-#> 3           w  -0.5514807  0.410585
+#>          term   conf.low conf.high
+#> 1 (Intercept) -0.3439308 0.6159157
+#> 2           x -4.0703086 3.4365025
+#> 3           w -0.3025500 0.1376759
 ```

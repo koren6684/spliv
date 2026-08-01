@@ -52,8 +52,9 @@ bpe_design(
 
 - transportability_rationale:
 
-  Optional description of why the direct effect learned in the subset
-  may be informative for the target sample.
+  Optional at construction time. A non-empty description of why the
+  direct effect learned in the subset may be informative for the target
+  sample is required for confirmatory validation and estimation.
 
 - notes:
 
@@ -69,7 +70,8 @@ An object of class `"spliv_bpe_design"`.
 design <- bpe_design(
   "Inactive subset", ~ inactive,
   rationale = "The treatment channel is absent in this subset.",
-  variables_used = "inactive", pre_specified = TRUE
+  variables_used = "inactive", pre_specified = TRUE,
+  transportability_rationale = "The same direct-effect mechanism applies to the target sample."
 )
 bpe_eval_subset(design, data.frame(inactive = c(TRUE, FALSE)))
 #> [1]  TRUE FALSE

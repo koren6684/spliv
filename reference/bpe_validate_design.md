@@ -20,7 +20,7 @@ bpe_validate_design(
   bpe_min_varZ_S = 1e-06,
   bpe_equiv_margin,
   bpe_equiv_level = 0.95,
-  bpe_transport = c("none", "sampling", "conservative"),
+  bpe_transport = c("sampling", "conservative"),
   bpe_transport_kappa = 0,
   bpe_kappa = 1,
   scale_instrument = c("residual_sd", "none")
@@ -79,9 +79,12 @@ bpe_validate_design(
 
 - bpe_equiv_margin:
 
-  Researcher-specified equivalence margin for the first-stage
-  coefficient. Eligibility is based on the first-stage equivalence
-  interval, not on the first-stage F-statistic.
+  Researcher-specified equivalence margin. With
+  `scale_instrument = "residual_sd"`, this bounds the first-stage effect
+  in residual treatment standard deviations associated with a
+  one-residual-SD instrument shift. With `scale_instrument = "none"`, it
+  bounds the raw first-stage coefficient. Eligibility uses the
+  corresponding confidence interval, not the first-stage F-statistic.
 
 - bpe_equiv_level:
 
@@ -89,9 +92,9 @@ bpe_validate_design(
 
 - bpe_transport:
 
-  One of `"none"`, `"sampling"`, or `"conservative"`. Transportability
-  is an assumption reflected in the reported covariance; it is not
-  established by the subset itself.
+  One of `"sampling"` or `"conservative"`. Sampling uses the estimated
+  reduced-form sampling covariance. Conservative adds the documented
+  inflation controlled by `bpe_transport_kappa`.
 
 - bpe_transport_kappa:
 
@@ -122,7 +125,8 @@ d <- data.frame(
   inactive = rep(c(TRUE, FALSE), each = 40)
 )
 design <- bpe_design("Inactive", ~ inactive,
-  rationale = "The treatment channel is absent.")
+  rationale = "The treatment channel is absent.",
+  transportability_rationale = "The direct-effect mechanism applies to the target sample.")
 bpe_validate_design(y ~ x | z, d, design,
   bpe_min_n_S = 20, bpe_equiv_margin = 1)
 #> $design_name
@@ -141,7 +145,10 @@ bpe_validate_design(y ~ x | z, d, design,
 #> [1] TRUE
 #> 
 #> $transportability_rationale
-#> NULL
+#> [1] "The direct-effect mechanism applies to the target sample."
+#> 
+#> $transportability_rationale_passed
+#> [1] TRUE
 #> 
 #> $notes
 #> NULL
@@ -175,11 +182,19 @@ bpe_validate_design(y ~ x | z, d, design,
 #>         z 
 #> 0.2973111 
 #> 
+#> $raw_first_stage_coefficient
+#>         z 
+#> 0.2973111 
+#> 
 #> $first_stage_se
 #>         z 
 #> 0.1936949 
 #> 
 #> $first_stage_ci
+#>         lower     upper
+#> z -0.08232386 0.6769461
+#> 
+#> $raw_first_stage_ci
 #>         lower     upper
 #> z -0.08232386 0.6769461
 #> 
@@ -198,9 +213,20 @@ bpe_validate_design(y ~ x | z, d, design,
 #>         z 
 #> 0.2416232 
 #> 
+#> $standardized_first_stage_ci
+#>         lower     upper
+#> z -0.06690418 0.5501506
+#> 
+#> $equivalence_ci
+#>         lower     upper
+#> z -0.06690418 0.5501506
+#> 
 #> $equivalence_margin
 #> z 
 #> 1 
+#> 
+#> $equivalence_scale
+#> [1] "residual_treatment_sd_per_residual_instrument_sd"
 #> 
 #> $equivalence_level
 #> [1] 0.95
@@ -216,6 +242,9 @@ bpe_validate_design(y ~ x | z, d, design,
 #> [1] TRUE
 #> 
 #> $eligibility_checks$rationale
+#> [1] TRUE
+#> 
+#> $eligibility_checks$transportability_rationale
 #> [1] TRUE
 #> 
 #> $eligibility_checks$minimum_n
@@ -248,10 +277,13 @@ bpe_validate_design(y ~ x | z, d, design,
 #> z 0.03586035
 #> 
 #> $transport_mode
-#> [1] "none"
+#> [1] "sampling"
 #> 
 #> $transport_uncertainty_inflation
 #> [1] 1
+#> 
+#> $transport_covariance_description
+#> [1] "estimated reduced-form sampling covariance"
 #> 
 #> $prior_mu_sub
 #>          z 

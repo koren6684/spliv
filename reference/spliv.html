@@ -9,7 +9,7 @@ fixed-effect or residualized IV designs."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">spliv</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -35,7 +35,7 @@ fixed-effect or residualized IV designs."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Patterned Sensitivity Analysis for Plausibly Exogenous IV</h1>
-      <small class="dont-index">Source: <a href="https://github.com/koren6684/spliv/blob/v0.2.0/R/spliv.R" class="external-link"><code>R/spliv.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/koren6684/spliv/blob/main/R/spliv.R" class="external-link"><code>R/spliv.R</code></a></small>
       <div class="d-none name"><code>spliv.Rd</code></div>
     </div>
 
@@ -53,27 +53,22 @@ fixed-effect or residualized IV designs.</p>
 <span>  fe_engine <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"fixest"</span>, <span class="st">"lfe"</span><span class="op">)</span>,</span>
 <span>  vcov <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"iid"</span>, <span class="st">"hc1"</span>, <span class="st">"cluster"</span><span class="op">)</span>,</span>
 <span>  cluster <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ltz"</span>, <span class="st">"uci"</span>, <span class="st">"bpe"</span><span class="op">)</span>,</span>
+<span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"uci"</span>, <span class="st">"ltz"</span>, <span class="st">"bpe"</span><span class="op">)</span>,</span>
 <span>  prior <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  delta <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  violation_pattern <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  bpe <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  bpe_design <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  bpe_spec <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>design <span class="op">=</span> <span class="cn">NULL</span>, subset <span class="op">=</span> <span class="cn">NULL</span>, z_names <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span>,</span>
 <span>  bpe_kappa <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  bpe_omega <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  bpe_min_n_S <span class="op">=</span> <span class="fl">2000</span>,</span>
 <span>  bpe_min_clusters_S <span class="op">=</span> <span class="fl">30</span>,</span>
-<span>  bpe_max_F_S <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  bpe_min_varZ_S <span class="op">=</span> <span class="fl">1e-06</span>,</span>
 <span>  bpe_equiv_margin <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  bpe_equiv_level <span class="op">=</span> <span class="fl">0.95</span>,</span>
-<span>  bpe_transport <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sampling"</span>, <span class="st">"none"</span>, <span class="st">"conservative"</span><span class="op">)</span>,</span>
+<span>  bpe_transport <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sampling"</span>, <span class="st">"conservative"</span><span class="op">)</span>,</span>
 <span>  bpe_transport_kappa <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  bpe_not_applicable <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"na"</span>, <span class="st">"error"</span><span class="op">)</span>,</span>
 <span>  scale_instrument <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"residual_sd"</span>, <span class="st">"none"</span><span class="op">)</span>,</span>
-<span>  grid <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  <span class="va">...</span></span>
+<span>  grid <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -82,7 +77,8 @@ fixed-effect or residualized IV designs.</p>
 
 
 <dl><dt id="arg-formula">formula<a class="anchor" aria-label="anchor" href="#arg-formula"></a></dt>
-<dd><p>IV formula <code>y ~ X | Z</code>.</p></dd>
+<dd><p>IV formula <code>y ~ X | Z</code>. Ordinary exogenous controls must
+appear on both sides, for example <code>y ~ x + w | z + w</code>.</p></dd>
 
 
 <dt id="arg-data">data<a class="anchor" aria-label="anchor" href="#arg-data"></a></dt>
@@ -106,7 +102,8 @@ fixed-effect or residualized IV designs.</p>
 
 
 <dt id="arg-method">method<a class="anchor" aria-label="anchor" href="#arg-method"></a></dt>
-<dd><p>One of <code>"ltz"</code>, <code>"uci"</code>, or <code>"bpe"</code>.</p></dd>
+<dd><p>One of <code>"uci"</code>, <code>"ltz"</code>, or <code>"bpe"</code>. The default is the
+conventional UCI analysis.</p></dd>
 
 
 <dt id="arg-prior">prior<a class="anchor" aria-label="anchor" href="#arg-prior"></a></dt>
@@ -117,47 +114,30 @@ scalar prior over the pattern coefficient.</p></dd>
 
 <dt id="arg-delta">delta<a class="anchor" aria-label="anchor" href="#arg-delta"></a></dt>
 <dd><p>Optional non-negative scalar sensitivity magnitude. With
-<code>method = "uci"</code>, <code>delta</code> implies theta bounds <code>[-delta, +delta]</code> unless
-explicit bounds are supplied in <code>grid</code>. With <code>method = "ltz"</code> and no
-explicit <code>prior</code>, <code>delta</code> induces a zero-mean normal LTZ prior.</p></dd>
+<code>scale_instrument = "residual_sd"</code>, delta is the direct outcome effect of
+a one-residual-SD instrument shift. With <code>scale_instrument = "none"</code>, it
+is the raw direct-effect coefficient. For UCI, delta supplies symmetric
+bounds <code>[-delta, +delta]</code>; for LTZ without an explicit prior, it is the
+standard deviation of a zero-mean normal direct-effect prior.</p></dd>
 
 
 <dt id="arg-violation-pattern">violation_pattern<a class="anchor" aria-label="anchor" href="#arg-violation-pattern"></a></dt>
 <dd><p>Optional <code><a href="spliv_pattern.html">spliv_pattern()</a></code> object describing how the
 direct effect of the instrument may vary across observations. If omitted,
-LTZ/UCI retain the package's backward-compatible uniform direct-effect
-behavior. This argument is currently supported for LTZ and UCI, but not for
+LTZ/UCI use the uniform direct-effect behavior. This argument is currently
+supported for LTZ and UCI, but not for
 confirmatory BPE.</p></dd>
 
 
-<dt id="arg-bpe">bpe<a class="anchor" aria-label="anchor" href="#arg-bpe"></a></dt>
-<dd><p>Logical; when <code>TRUE</code>, learn prior moments from a confirmatory
-<code><a href="bpe_design.html">bpe_design()</a></code> and run LTZ.</p></dd>
-
-
 <dt id="arg-bpe-design">bpe_design<a class="anchor" aria-label="anchor" href="#arg-bpe-design"></a></dt>
-<dd><p>Optional <code><a href="bpe_design.html">bpe_design()</a></code> object for confirmatory BPE.</p></dd>
-
-
-<dt id="arg-bpe-spec">bpe_spec<a class="anchor" aria-label="anchor" href="#arg-bpe-spec"></a></dt>
-<dd><p>Optional list. Prefer <code>bpe_spec = list(design = my_design)</code>.
-For backward compatibility, <code>bpe_spec$subset</code> may also be supplied, but it
-must represent an explicit researcher-supplied subset and should be paired
-with a non-empty <code>rationale</code>, explicit <code>pre_specified = TRUE</code>, and any
-relevant metadata such as <code>variables_used</code> or <code>subset_type</code>. Supply exactly
-one confirmatory subset source: <code>bpe_design</code>, <code>bpe_spec$design</code>, or
-<code>bpe_spec$subset</code>. Exploratory <code>subset_rule</code> inputs are not accepted for
-confirmatory estimation.</p></dd>
+<dd><p>A pre-specified <code><a href="bpe_design.html">bpe_design()</a></code> object for confirmatory BPE.
+A non-empty subset rationale and transportability rationale are required
+when <code>method = "bpe"</code>.</p></dd>
 
 
 <dt id="arg-bpe-kappa">bpe_kappa<a class="anchor" aria-label="anchor" href="#arg-bpe-kappa"></a></dt>
 <dd><p>Positive scalar multiplier applied to the confirmatory BPE
 covariance after transport adjustment.</p></dd>
-
-
-<dt id="arg-bpe-omega">bpe_omega<a class="anchor" aria-label="anchor" href="#arg-bpe-omega"></a></dt>
-<dd><p>Deprecated. Confirmatory BPE now uses the full reduced-form
-covariance from the subset together with <code>bpe_transport</code>.</p></dd>
 
 
 <dt id="arg-bpe-min-n-s">bpe_min_n_S<a class="anchor" aria-label="anchor" href="#arg-bpe-min-n-s"></a></dt>
@@ -170,11 +150,6 @@ covariance from the subset together with <code>bpe_transport</code>.</p></dd>
 when <code>vcov = "cluster"</code>. Default <code>30</code>.</p></dd>
 
 
-<dt id="arg-bpe-max-f-s">bpe_max_F_S<a class="anchor" aria-label="anchor" href="#arg-bpe-max-f-s"></a></dt>
-<dd><p>Deprecated. The first-stage F-statistic is reported for
-diagnostics only and no longer determines confirmatory BPE eligibility.</p></dd>
-
-
 <dt id="arg-bpe-min-varz-s">bpe_min_varZ_S<a class="anchor" aria-label="anchor" href="#arg-bpe-min-varz-s"></a></dt>
 <dd><p>Minimum residualized instrument variance required in
 subset <code>S</code>. Default <code>1e-6</code>.</p></dd>
@@ -182,7 +157,11 @@ subset <code>S</code>. Default <code>1e-6</code>.</p></dd>
 
 <dt id="arg-bpe-equiv-margin">bpe_equiv_margin<a class="anchor" aria-label="anchor" href="#arg-bpe-equiv-margin"></a></dt>
 <dd><p>Researcher-specified first-stage equivalence margin.
-Confirmatory BPE currently supports exactly one instrument.</p></dd>
+With <code>scale_instrument = "residual_sd"</code>, the margin is measured in
+residual treatment standard deviations per one-residual-SD instrument
+shift. With <code>scale_instrument = "none"</code>, it is on the raw first-stage
+coefficient scale. Confirmatory BPE currently supports one treatment and
+one instrument.</p></dd>
 
 
 <dt id="arg-bpe-equiv-level">bpe_equiv_level<a class="anchor" aria-label="anchor" href="#arg-bpe-equiv-level"></a></dt>
@@ -190,7 +169,9 @@ Confirmatory BPE currently supports exactly one instrument.</p></dd>
 
 
 <dt id="arg-bpe-transport">bpe_transport<a class="anchor" aria-label="anchor" href="#arg-bpe-transport"></a></dt>
-<dd><p>One of <code>"none"</code>, <code>"sampling"</code>, or <code>"conservative"</code>.</p></dd>
+<dd><p>One of <code>"sampling"</code> or <code>"conservative"</code>. Sampling uses
+the estimated reduced-form sampling covariance; conservative adds the
+inflation controlled by <code>bpe_transport_kappa</code>.</p></dd>
 
 
 <dt id="arg-bpe-transport-kappa">bpe_transport_kappa<a class="anchor" aria-label="anchor" href="#arg-bpe-transport-kappa"></a></dt>
@@ -209,15 +190,11 @@ transport covariance inflation.</p></dd>
 
 <dt id="arg-grid">grid<a class="anchor" aria-label="anchor" href="#arg-grid"></a></dt>
 <dd><p>List controlling UCI bounds or other tuning parameters. For
-backward-compatible scalar UCI, if <code>grid$delta</code> is supplied and
+scalar UCI, if <code>grid$delta</code> is supplied and
 <code>grid$gmin</code>/<code>grid$gmax</code> are omitted, the package interprets <code>delta</code> as a
 direct-effect bound of <code>[-delta, +delta]</code> under the chosen
 <code>scale_instrument</code>. When <code>violation_pattern</code> is supplied, <code>grid$delta</code>
 instead refers to theta bounds over the pattern-scaled direct effect.</p></dd>
-
-
-<dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
-<dd><p>Reserved.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -226,7 +203,10 @@ instead refers to theta bounds over the pattern-scaled direct effect.</p></dd>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p><code>spliv</code> implements patterned sensitivity analysis for exclusion violations in
+    <p>UCI is the union of conventional IV confidence intervals over the specified
+direct-effect bounds. LTZ propagates a local-to-zero prior mean and covariance
+for the direct effect into the IV estimate and uncertainty.</p>
+<p><code>spliv</code> implements patterned sensitivity analysis for exclusion violations in
 IV designs with fixed effects or other residualization steps. Researchers can
 supply a theoretically motivated <code><a href="spliv_pattern.html">spliv_pattern()</a></code> object to specify where
 direct effects of an instrument are expected to be larger or smaller, and the
@@ -241,7 +221,8 @@ value.</p>
 excluded instrument, and one researcher-specified pattern at a time.</p>
 <p>Confirmatory BPE is not a subgroup-search procedure. The researcher must
 supply a pre-specified <code><a href="bpe_design.html">bpe_design()</a></code> object, the package validates that
-subset, and BPE proceeds only if the confirmatory eligibility checks pass.</p>
+subset, documents why its direct effect is transportable to the target
+sample, and BPE proceeds only if the confirmatory eligibility checks pass.</p>
 <p>The first-stage F-statistic is still reported for diagnostics, but
 confirmatory BPE eligibility is determined by the pre-specification checks,
 subset size, cluster count, residualized instrument variation, and a
@@ -254,12 +235,12 @@ optionally be inflated via <code>bpe_transport</code>.</p>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">60</span><span class="op">)</span>, x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">60</span><span class="op">)</span>, z <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">60</span><span class="op">)</span>, w <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">60</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu">spliv</span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x</span> <span class="op">+</span> <span class="va">w</span> <span class="op">|</span> <span class="va">z</span> <span class="op">+</span> <span class="va">w</span>, <span class="va">d</span>, method <span class="op">=</span> <span class="st">"uci"</span>, delta <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu">spliv</span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x</span> <span class="op">+</span> <span class="va">w</span> <span class="op">|</span> <span class="va">z</span> <span class="op">+</span> <span class="va">w</span>, <span class="va">d</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">fit</span><span class="op">$</span><span class="va">estimates</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          term    conf.low conf.high</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 (Intercept)  -0.8544988  1.363666</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2           x -10.1507140  7.661939</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3           w  -0.5514807  0.410585</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          term   conf.low conf.high</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 (Intercept) -0.3439308 0.6159157</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2           x -4.0703086 3.4365025</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3           w -0.3025500 0.1376759</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
