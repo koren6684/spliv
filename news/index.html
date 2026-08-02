@@ -50,7 +50,7 @@
 <li>Confirmatory BPE now requires a non-empty transportability rationale and uses the aligned <code>sampling</code> or <code>conservative</code> covariance modes in standalone validation and final estimation.</li>
 <li>Exploratory subset diagnostics retain first-stage F-statistics as descriptive information but no longer expose an F-threshold selection control.</li>
 <li>Numerical-equivalence, BPE invariance, fixed-effect, clustered-inference, edge-case, and plotting tests were expanded. No treatment-effect formula or sensitivity estimand was intentionally changed apart from the BPE equivalence-scale correction above.</li>
-<li>A fair 72-case equivalent-computation benchmark was added under <code>dev/</code>. SPLIV was faster in all no-fixed-effect cases and smaller two-way-FE cases, but slower and more allocation-intensive in the <code>n = 50,000</code> two-way-FE cases; no unconditional performance claim is made.</li>
+<li>A finalized 72-case equivalent-computation benchmark was added under <code>dev/</code>. Corresponding sensitivity-interval endpoints agreed to numerical precision. The optimized sensitivity-path implementation was faster than repeated adjusted-outcome refitting in every benchmarked design. Allocated memory was substantially lower in many cases but was not uniformly lower, including one large design with approximately 25% greater allocation.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.0" id="spliv-020">spliv 0.2.0<a class="anchor" aria-label="anchor" href="#spliv-020"></a></h2>
