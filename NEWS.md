@@ -27,10 +27,12 @@
   edge-case, and plotting tests were expanded. No treatment-effect formula or
   sensitivity estimand was intentionally changed apart from the BPE
   equivalence-scale correction above.
-- A fair 72-case equivalent-computation benchmark was added under `dev/`.
-  SPLIV was faster in all no-fixed-effect cases and smaller two-way-FE cases,
-  but slower and more allocation-intensive in the `n = 50,000` two-way-FE
-  cases; no unconditional performance claim is made.
+- A finalized 72-case equivalent-computation benchmark was added under
+  `dev/`. Corresponding sensitivity-interval endpoints agreed to numerical
+  precision. The optimized sensitivity-path implementation was faster than
+  repeated adjusted-outcome refitting in every benchmarked design. Allocated
+  memory was substantially lower in many cases but was not uniformly lower,
+  including one large design with approximately 25% greater allocation.
 
 # spliv 0.2.0
 

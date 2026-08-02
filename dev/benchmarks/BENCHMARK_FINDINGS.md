@@ -8,7 +8,7 @@ group-count designs per sample size; 5-, 21-, and 41-value delta grids;
 uniform and patterned UCI; and no-FE and two-way-FE specifications. Each
 method received one warm-up and five measured iterations. The machine-readable
 results are in `output/benchmark_results_full.csv` (SHA-256
-`<NEW_SHA256>`).
+`3bd635d142842af2c6170188622a39a81ab22c9783cb8aad60fb9b1a10c0e189`).
 
 All 144 method rows completed without error. The maximum absolute disagreement
 between corresponding UCI endpoints was `5.24e-14`, well below the
