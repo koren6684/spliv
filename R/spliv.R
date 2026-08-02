@@ -688,6 +688,166 @@ spliv_eval_pattern <- function(pattern, data) {
   )
 }
 
+.sensitivity_path_preparation_event <- function(event, enabled) {
+  if (!isTRUE(enabled)) {
+    return(invisible(NULL))
+  }
+  hook <- getOption("spliv.sensitivity_path.preparation_hook", NULL)
+  if (is.function(hook)) {
+    hook(event)
+  }
+  invisible(NULL)
+}
+
+.prepare_spliv_design <- function(formula,
+                                  data,
+                                  fe = NULL,
+                                  fe_engine = c("fixest", "lfe"),
+                                  vcov = c("iid", "hc1", "cluster"),
+                                  cluster = NULL,
+                                  violation_pattern = NULL,
+                                  scale_instrument = c("residual_sd", "none"),
+                                  bpe_requested = FALSE,
+                                  path_method = NULL,
+                                  prepare_path_cache = FALSE) {
+  fe_engine <- match.arg(fe_engine)
+  vcov <- match.arg(tolower(vcov), c("iid", "hc1", "cluster"))
+  scale_instrument <- match.arg(scale_instrument)
+
+  if (!is.null(violation_pattern) && isTRUE(bpe_requested)) {
+    stop(
+      "`violation_pattern` is not currently supported with confirmatory BPE. ",
+      "Use patterned sensitivity with LTZ or UCI, or omit `violation_pattern` when `method = 'bpe'`."
+    )
+  }
+
+  extra_vars <- unique(c(all.vars(fe), all.vars(cluster)))
+  .sensitivity_path_preparation_event("formula_preparation", prepare_path_cache)
+  parsed <- .iv_parse(formula, data, extra_vars = extra_vars)
+  .sensitivity_path_preparation_event("complete_case_filtering", prepare_path_cache)
+
+  y <- parsed$y
+  X <- parsed$X
+  Z <- parsed$Z
+  W <- .build_W_from_XZ(X, Z)
+  data_cc <- data[parsed$keep, , drop = FALSE]
+
+  if (!is.null(fe)) {
+    X <- .drop_intercept_and_constants(X)
+    Z <- .drop_intercept_and_constants(Z)
+    W <- .drop_intercept_and_constants(W)
+    if (ncol(X) == 0 || ncol(Z) == 0) {
+      stop("After FE intercept/constant removal, X and Z must each have at least one column.")
+    }
+
+    .sensitivity_path_preparation_event("fixed_effect_residualization", prepare_path_cache)
+    if (identical(fe_engine, "fixest")) {
+      dm <- .demean_fixest(y = y, X = X, Z = Z, W = W, fe_fml = fe, data = data_cc)
+    } else {
+      fe_df <- .build_fe_frame(fe, data_cc)
+      dm <- .demean_lfe(y = y, X = X, Z = Z, W = W, fe_list = fe_df)
+    }
+
+    y <- dm$y
+    X <- .drop_intercept_and_constants(dm$X)
+    Z <- .drop_intercept_and_constants(dm$Z)
+    W <- .drop_intercept_and_constants(dm$W)
+    if (ncol(X) == 0 || ncol(Z) == 0) {
+      stop("Demeaning removed all variation from X or Z.")
+    }
+  }
+
+  cluster_id <- NULL
+  if (identical(vcov, "cluster")) {
+    if (is.null(cluster)) {
+      stop("vcov='cluster' requires `cluster`.")
+    }
+    cluster_id <- .get_cluster_id(cluster, data_cc)
+    .sensitivity_path_preparation_event("cluster_alignment", prepare_path_cache)
+  }
+
+  residualized_instrument_sd <- .instrument_residual_sds(
+    X = X,
+    Z = Z,
+    W = W,
+    fe_present = !is.null(fe)
+  )
+  .sensitivity_path_preparation_event("instrument_scaling_preparation", prepare_path_cache)
+
+  violation_pattern_state <- NULL
+  violation_pattern_info <- NULL
+  warn_msgs <- character(0)
+  if (!is.null(violation_pattern)) {
+    .sensitivity_path_preparation_event("pattern_preparation", prepare_path_cache)
+    violation_pattern_state <- .prepare_violation_pattern(
+      violation_pattern = violation_pattern,
+      data = data,
+      sample_idx = parsed$keep,
+      X = X,
+      Z = Z,
+      residualized_instrument_sd = residualized_instrument_sd,
+      scale_instrument = scale_instrument
+    )
+    violation_pattern_info <- violation_pattern_state$info
+    warn_msgs <- c(warn_msgs, violation_pattern_state$warnings %||% character(0))
+  }
+
+  iv_design <- NULL
+  ltz_fit <- NULL
+  ltz_A <- NULL
+  if (isTRUE(prepare_path_cache)) {
+    .sensitivity_path_preparation_event("iv_design_preparation", prepare_path_cache)
+    iv_design <- .prepare_iv_2sls_design(
+      X = X,
+      Z = Z,
+      vcov = vcov,
+      cluster_id = cluster_id
+    )
+    if (identical(path_method, "ltz")) {
+      ltz_fit <- .iv_2sls_mats(
+        y = y,
+        X = X,
+        Z = Z,
+        vcov = vcov,
+        cluster_id = cluster_id,
+        prepared_design = iv_design
+      )
+      direct_effect <- if (is.null(violation_pattern_state)) {
+        as.matrix(Z)
+      } else {
+        as.matrix(violation_pattern_state$direct_effect)
+      }
+      ltz_A <- .safe_solve(
+        ltz_fit$XPZX,
+        ltz_fit$XZ %*% ltz_fit$ZZinv %*% crossprod(Z, direct_effect)
+      )
+    }
+  }
+
+  structure(
+    list(
+      parsed = parsed,
+      y = y,
+      X = X,
+      Z = Z,
+      W = W,
+      data_cc = data_cc,
+      cluster_id = cluster_id,
+      residualized_instrument_sd = residualized_instrument_sd,
+      violation_pattern_state = violation_pattern_state,
+      violation_pattern_info = violation_pattern_info,
+      warn_msgs = unique(warn_msgs),
+      fe_engine = fe_engine,
+      vcov = vcov,
+      scale_instrument = scale_instrument,
+      iv_design = iv_design,
+      ltz_fit = ltz_fit,
+      ltz_A = ltz_A
+    ),
+    class = "spliv_prepared_design"
+  )
+}
+
 #' Patterned Sensitivity Analysis for Plausibly Exogenous IV
 #'
 #' Main estimator for patterned sensitivity analysis of exclusion violations in
@@ -867,7 +1027,10 @@ spliv <- function(formula,
                         bpe_transport_kappa = 0,
                         bpe_not_applicable = c("na", "error"),
                         scale_instrument = c("residual_sd", "none"),
-                        grid = list()) {
+                        grid = list(),
+                        .prepared = NULL,
+                        .prepare_only = FALSE,
+                        .prepare_path_cache = FALSE) {
   fe_engine <- match.arg(fe_engine)
   vcov <- match.arg(tolower(vcov), c("iid", "hc1", "cluster"))
   if (length(method) > 1L) {
@@ -890,80 +1053,45 @@ spliv <- function(formula,
     stop("BPE is only available with `method = \"bpe\"`.")
   }
 
-  extra_vars <- unique(c(all.vars(fe), all.vars(cluster)))
-  parsed <- .iv_parse(formula, data, extra_vars = extra_vars)
-
-  y <- parsed$y
-  X <- parsed$X
-  Z <- parsed$Z
-  W <- .build_W_from_XZ(X, Z)
-  data_cc <- data[parsed$keep, , drop = FALSE]
-
-  if (!is.null(fe)) {
-    X <- .drop_intercept_and_constants(X)
-    Z <- .drop_intercept_and_constants(Z)
-    W <- .drop_intercept_and_constants(W)
-    if (ncol(X) == 0 || ncol(Z) == 0) {
-      stop("After FE intercept/constant removal, X and Z must each have at least one column.")
-    }
-
-    if (fe_engine == "fixest") {
-      dm <- .demean_fixest(y = y, X = X, Z = Z, W = W, fe_fml = fe, data = data_cc)
-    } else {
-      fe_df <- .build_fe_frame(fe, data_cc)
-      dm <- .demean_lfe(y = y, X = X, Z = Z, W = W, fe_list = fe_df)
-    }
-
-    y <- dm$y
-    X <- .drop_intercept_and_constants(dm$X)
-    Z <- .drop_intercept_and_constants(dm$Z)
-    W <- .drop_intercept_and_constants(dm$W)
-    if (ncol(X) == 0 || ncol(Z) == 0) {
-      stop("Demeaning removed all variation from X or Z.")
-    }
+  if (is.null(.prepared)) {
+    .prepared <- .prepare_spliv_design(
+      formula = formula,
+      data = data,
+      fe = fe,
+      fe_engine = fe_engine,
+      vcov = vcov,
+      cluster = cluster,
+      violation_pattern = violation_pattern,
+      scale_instrument = scale_instrument,
+      bpe_requested = bpe_requested,
+      path_method = method_core,
+      prepare_path_cache = .prepare_path_cache
+    )
+  } else if (!inherits(.prepared, "spliv_prepared_design")) {
+    stop("`.prepared` must be an internal prepared SPLIV design.")
   }
 
-  cluster_id <- NULL
-  if (vcov == "cluster") {
-    if (is.null(cluster)) {
-      stop("vcov='cluster' requires `cluster`.")
-    }
-    cluster_id <- .get_cluster_id(cluster, data_cc)
-  }
+  parsed <- .prepared$parsed
+  y <- .prepared$y
+  X <- .prepared$X
+  Z <- .prepared$Z
+  W <- .prepared$W
+  data_cc <- .prepared$data_cc
+  cluster_id <- .prepared$cluster_id
+  residualized_instrument_sd <- .prepared$residualized_instrument_sd
+  violation_pattern_state <- .prepared$violation_pattern_state
+  violation_pattern_info <- .prepared$violation_pattern_info
+  fe_engine <- .prepared$fe_engine
+  vcov <- .prepared$vcov
+  scale_instrument <- .prepared$scale_instrument
 
-  residualized_instrument_sd <- .instrument_residual_sds(
-    X = X,
-    Z = Z,
-    W = W,
-    fe_present = !is.null(fe)
-  )
+  if (isTRUE(.prepare_only)) {
+    return(.prepared)
+  }
 
   bpe_diag <- NULL
-  violation_pattern_state <- NULL
-  violation_pattern_info <- NULL
   err_msgs <- character(0)
-  warn_msgs <- character(0)
-
-  if (!is.null(violation_pattern) && bpe_requested) {
-    stop(
-      "`violation_pattern` is not currently supported with confirmatory BPE. ",
-      "Use patterned sensitivity with LTZ or UCI, or omit `violation_pattern` when `method = 'bpe'`."
-    )
-  }
-
-  if (!is.null(violation_pattern)) {
-    violation_pattern_state <- .prepare_violation_pattern(
-      violation_pattern = violation_pattern,
-      data = data,
-      sample_idx = parsed$keep,
-      X = X,
-      Z = Z,
-      residualized_instrument_sd = residualized_instrument_sd,
-      scale_instrument = scale_instrument
-    )
-    violation_pattern_info <- violation_pattern_state$info
-    warn_msgs <- c(warn_msgs, violation_pattern_state$warnings %||% character(0))
-  }
+  warn_msgs <- .prepared$warn_msgs %||% character(0)
 
   if (bpe_requested) {
     if (!is.null(prior)) {
@@ -1059,7 +1187,10 @@ spliv <- function(formula,
         coef_names = colnames(X),
         inst_names = colnames(Z),
         direct_effect = violation_pattern_state$direct_effect,
-        direct_effect_names = violation_pattern_state$direct_effect_names
+        direct_effect_names = violation_pattern_state$direct_effect_names,
+        prepared_design = .prepared$iv_design,
+        prepared_fit = .prepared$ltz_fit,
+        prepared_A = .prepared$ltz_A
       )
 
       fit <- list(
@@ -1139,7 +1270,10 @@ spliv <- function(formula,
       vcov = vcov,
       cluster_id = cluster_id,
       coef_names = colnames(X),
-      inst_names = colnames(Z)
+      inst_names = colnames(Z),
+      prepared_design = .prepared$iv_design,
+      prepared_fit = .prepared$ltz_fit,
+      prepared_A = .prepared$ltz_A
     )
 
     fit <- list(
@@ -1224,7 +1358,8 @@ spliv <- function(formula,
       cluster_id = cluster_id,
       coef_names = colnames(X),
       direct_effect = violation_pattern_state$direct_effect,
-      direct_effect_names = violation_pattern_state$direct_effect_names
+      direct_effect_names = violation_pattern_state$direct_effect_names,
+      prepared_design = .prepared$iv_design
     )
 
     fit <- list(
@@ -1317,7 +1452,8 @@ spliv <- function(formula,
     level = grid$level %||% 0.95,
     vcov = vcov,
     cluster_id = cluster_id,
-    coef_names = colnames(X)
+    coef_names = colnames(X),
+    prepared_design = .prepared$iv_design
   )
 
   fit <- list(

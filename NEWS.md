@@ -1,5 +1,11 @@
 # spliv 0.2.1
 
+- `spliv_sensitivity_path()` now reuses invariant formula parsing,
+  complete-case filtering, model matrices, fixed-effect residualization,
+  cluster alignment, pattern evaluation, instrument scaling, and 2SLS design
+  calculations across its delta grid. This is an internal, numerically
+  equivalent optimization: the public API and statistical results are not
+  intended to change.
 - `spliv()` is the sole recommended primary estimator.
 - Fit objects now use class `spliv_fit`.
 - Accidental legacy aliases present in the 0.1.x interface were removed from

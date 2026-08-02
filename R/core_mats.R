@@ -22,27 +22,88 @@
   M[, keep, drop = FALSE]
 }
 
-.iv_2sls_mats <- function(y, X, Z,
-                          vcov = c("hc1", "hc0", "iid", "cluster"),
-                          cluster_id = NULL) {
+.prepare_iv_2sls_design <- function(X, Z,
+                                    vcov = c("hc1", "hc0", "iid", "cluster"),
+                                    cluster_id = NULL) {
   vcov <- match.arg(tolower(vcov), c("hc1", "hc0", "iid", "cluster"))
-
-  y <- as.numeric(y)
   X <- as.matrix(X)
   Z <- as.matrix(Z)
 
-  n <- length(y)
+  n <- nrow(X)
   k <- ncol(X)
-
-  ZZ <- crossprod(Z)
-  ZZinv <- .safe_solve(ZZ)
+  ZZinv <- .safe_solve(crossprod(Z))
   XZ <- crossprod(X, Z)
-  ZY <- crossprod(Z, y)
   XPZX <- XZ %*% ZZinv %*% t(XZ)
+  bread <- .safe_solve(XPZX)
+
+  cluster_factor <- NULL
+  cluster_count <- NULL
+  if (identical(vcov, "cluster")) {
+    if (is.null(cluster_id)) {
+      stop("vcov='cluster' requires cluster_id.")
+    }
+    cluster_factor <- as.factor(cluster_id)
+    cluster_count <- nlevels(cluster_factor)
+    if (cluster_count < 2) {
+      stop("Need at least 2 clusters for cluster vcov.")
+    }
+  }
+
+  structure(
+    list(
+      X = X,
+      Z = Z,
+      n = n,
+      k = k,
+      ZZinv = ZZinv,
+      XZ = XZ,
+      XPZX = XPZX,
+      bread = bread,
+      vcov = vcov,
+      cluster_id = cluster_factor,
+      cluster_count = cluster_count
+    ),
+    class = "spliv_prepared_iv_design"
+  )
+}
+
+.iv_2sls_mats <- function(y, X, Z,
+                          vcov = c("hc1", "hc0", "iid", "cluster"),
+                          cluster_id = NULL,
+                          prepared_design = NULL) {
+  vcov <- match.arg(tolower(vcov), c("hc1", "hc0", "iid", "cluster"))
+
+  y <- as.numeric(y)
+  if (is.null(prepared_design)) {
+    prepared_design <- .prepare_iv_2sls_design(
+      X = X,
+      Z = Z,
+      vcov = vcov,
+      cluster_id = cluster_id
+    )
+  } else if (!inherits(prepared_design, "spliv_prepared_iv_design")) {
+    stop("`prepared_design` must be an internal prepared IV design.")
+  }
+
+  X <- prepared_design$X
+  Z <- prepared_design$Z
+  n <- prepared_design$n
+  k <- prepared_design$k
+  ZZinv <- prepared_design$ZZinv
+  XZ <- prepared_design$XZ
+  XPZX <- prepared_design$XPZX
+  bread <- prepared_design$bread
+  if (length(y) != n) {
+    stop("Prepared IV design and outcome have different numbers of observations.")
+  }
+  if (!identical(vcov, prepared_design$vcov)) {
+    stop("Prepared IV design covariance type does not match `vcov`.")
+  }
+
+  ZY <- crossprod(Z, y)
 
   beta <- as.numeric(.safe_solve(XPZX, XZ %*% ZZinv %*% ZY))
   u <- as.numeric(y - X %*% beta)
-  bread <- .safe_solve(XPZX)
 
   if (vcov == "iid") {
     s2 <- sum(u^2) / max(1, n - k)
@@ -61,14 +122,8 @@
     return(list(beta = beta, vcov = V, resid = u, XZ = XZ, ZZinv = ZZinv, XPZX = XPZX))
   }
 
-  if (is.null(cluster_id)) {
-    stop("vcov='cluster' requires cluster_id.")
-  }
-  cluster_id <- as.factor(cluster_id)
-  G <- nlevels(cluster_id)
-  if (G < 2) {
-    stop("Need at least 2 clusters for cluster vcov.")
-  }
+  cluster_id <- prepared_design$cluster_id
+  G <- prepared_design$cluster_count
 
   meat_Z <- matrix(0, ncol(Z), ncol(Z))
   for (g in levels(cluster_id)) {
@@ -92,8 +147,20 @@
                         coef_names = colnames(X),
                         inst_names = colnames(Z),
                         direct_effect = NULL,
-                        direct_effect_names = NULL) {
-  fit <- .iv_2sls_mats(y, X, Z, vcov = vcov, cluster_id = cluster_id)
+                        direct_effect_names = NULL,
+                        prepared_design = NULL,
+                        prepared_fit = NULL,
+                        prepared_A = NULL) {
+  fit <- if (is.null(prepared_fit)) {
+    .iv_2sls_mats(
+      y, X, Z,
+      vcov = vcov,
+      cluster_id = cluster_id,
+      prepared_design = prepared_design
+    )
+  } else {
+    prepared_fit
+  }
 
   G <- if (is.null(direct_effect)) {
     as.matrix(Z)
@@ -123,8 +190,12 @@
   }
   Omega <- as.matrix(Omega)
 
-  ZG <- crossprod(Z, G)
-  A <- .safe_solve(fit$XPZX, fit$XZ %*% fit$ZZinv %*% ZG)
+  A <- if (is.null(prepared_A)) {
+    ZG <- crossprod(Z, G)
+    .safe_solve(fit$XPZX, fit$XZ %*% fit$ZZinv %*% ZG)
+  } else {
+    as.matrix(prepared_A)
+  }
   b_adj <- fit$beta - as.numeric(A %*% mu)
   A_mu <- as.numeric(A %*% mu)
   beta_shift <- as.numeric(fit$beta - b_adj)
@@ -169,7 +240,8 @@
                         cluster_id = NULL,
                         coef_names = colnames(X),
                         direct_effect = NULL,
-                        direct_effect_names = NULL) {
+                        direct_effect_names = NULL,
+                        prepared_design = NULL) {
   y <- as.numeric(y)
   X <- as.matrix(X)
   Z <- as.matrix(Z)
@@ -198,7 +270,12 @@
   for (r in seq_len(nrow(gamma_grid))) {
     gamma <- as.numeric(gamma_grid[r, ])
     y_adj <- y - as.numeric(G %*% gamma)
-    fit <- .iv_2sls_mats(y_adj, X, Z, vcov = vcov, cluster_id = cluster_id)
+    fit <- .iv_2sls_mats(
+      y_adj, X, Z,
+      vcov = vcov,
+      cluster_id = cluster_id,
+      prepared_design = prepared_design
+    )
     se <- sqrt(pmax(0, diag(fit$vcov)))
     lo <- pmin(lo, fit$beta - zcrit * se)
     hi <- pmax(hi, fit$beta + zcrit * se)
