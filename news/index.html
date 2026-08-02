@@ -33,12 +33,14 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/koren6684/spliv/blob/v0.2.1/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/koren6684/spliv/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.1" id="spliv-021">spliv 0.2.1<a class="anchor" aria-label="anchor" href="#spliv-021"></a></h2>
 <ul><li>
+<code><a href="../reference/spliv_sensitivity_path.html">spliv_sensitivity_path()</a></code> now reuses invariant formula parsing, complete-case filtering, model matrices, fixed-effect residualization, cluster alignment, pattern evaluation, instrument scaling, and 2SLS design calculations across its delta grid. This is an internal, numerically equivalent optimization: the public API and statistical results are not intended to change.</li>
+<li>
 <code><a href="../reference/spliv.html">spliv()</a></code> is the sole recommended primary estimator.</li>
 <li>Fit objects now use class <code>spliv_fit</code>.</li>
 <li>Accidental legacy aliases present in the 0.1.x interface were removed from the public API, including the old <code>plausexog()</code>/<code>conley_*()</code> names and implementation helper exports.</li>
