@@ -4,39 +4,30 @@
 
 1. `spliv_sensitivity_path()`; and
 2. a transparent loop that adjusts the outcome at the identical theta grid and
-   refits the identical residualized IV design with `fixest::feols()`.
+   refits the same residualized IV design with `fixest::feols()`.
 
 Both implementations use the same normalized pattern, residual-SD-scaled
-instrument, theta and delta grids, HC1 covariance convention, and union rule.
-The script stops if interval endpoints differ by more than `1e-8`; an unequal
-comparison is never timed as a valid speed comparison.
+instrument, theta and delta grids, HC1 covariance convention, and UCI union
+rule. The benchmark stops if corresponding interval endpoints differ by more
+than `1e-8`; a numerically nonequivalent comparison is never treated as a
+valid timing comparison.
 
-The full design covers sample sizes 1,000, 10,000, and 50,000; multiple
-fixed-effect group counts; delta-grid lengths 5, 21, and 41; uniform and
-patterned sensitivity; and no-FE and two-way-FE designs. Each method receives a
-warm-up run followed by at least five timed iterations. Median time, IQR,
-iterations per second, `Rprofmem()` allocated bytes, errors, model dimensions,
-software versions, operating system, and seed are recorded.
+The optimized SPLIV implementation prepares the invariant components of the
+model once per sensitivity path. Formula parsing, complete-case alignment,
+pattern evaluation, instrument scaling, fixed-effect residualization, cluster
+alignment, and invariant design calculations are then reused across delta
+values. The transparent comparison loop instead adjusts the outcome and refits
+the model separately at each sensitivity value.
 
-Run from the package root:
+The full benchmark covers sample sizes of 1,000, 10,000, and 50,000; multiple
+fixed-effect group-count designs; delta-grid lengths of 5, 21, and 41; uniform
+and patterned sensitivity; and specifications with no fixed effects or two-way
+fixed effects. Each method receives one warm-up run followed by at least five
+timed iterations. The output records median runtime, timing IQR, iterations per
+second, `Rprofmem()` allocated bytes, errors, model dimensions, software
+versions, operating system, and random seed.
+
+Run the full benchmark from the package root:
 
 ```sh
 Rscript dev/benchmarks/benchmark_sensitivity_paths.R
-```
-
-The completed full matrix is recorded in
-`output/benchmark_results_full.csv`. A representative correctness and timing
-smoke run uses the same five-iteration rule:
-
-```sh
-SPLIV_BENCHMARK_FAST=TRUE Rscript dev/benchmarks/benchmark_sensitivity_paths.R
-```
-
-`SPLIV_BENCHMARK_THETA_STEPS` controls the inner theta grid (default 5) and
-`SPLIV_BENCHMARK_ITERATIONS` may increase, but not reduce below five, the
-number of timed iterations. Outputs are written under `dev/benchmarks/output/`
-and are excluded from the CRAN source package.
-
-No experimental cached-design implementation is included. Adding one safely
-would require a separate public contract for reusable parsed/residualized
-designs; this release does not expose such an interface.
