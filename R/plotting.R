@@ -338,7 +338,10 @@ sp_sensitivity_ltz_uniform01_as_normal <- function(formula, data = NULL,
 }
 
 .check_sensitivity_path_dots <- function(dots) {
-  reserved <- c("formula", "data", "method", "delta", "violation_pattern")
+  reserved <- c(
+    "formula", "data", "method", "delta", "violation_pattern",
+    ".prepared", ".prepare_only", ".prepare_path_cache"
+  )
   bad_reserved <- intersect(names(dots), reserved)
   if (length(bad_reserved)) {
     stop(
@@ -366,20 +369,47 @@ sp_sensitivity_ltz_uniform01_as_normal <- function(formula, data = NULL,
   }
 }
 
-.fit_for_sensitivity_delta <- function(formula, data, method, delta, violation_pattern, dots) {
-  do.call(
-    spliv,
-    c(
-      list(
-        formula = formula,
-        data = data,
-        method = method,
-        delta = delta,
-        violation_pattern = violation_pattern
-      ),
-      dots
-    )
+.sensitivity_path_call_args <- function(formula, data, method, delta, violation_pattern, dots) {
+  c(
+    list(
+      formula = formula,
+      data = data,
+      method = method,
+      delta = delta,
+      violation_pattern = violation_pattern
+    ),
+    dots
   )
+}
+
+.prepare_sensitivity_path_design <- function(formula, data, method, violation_pattern, dots) {
+  args <- .sensitivity_path_call_args(
+    formula = formula,
+    data = data,
+    method = method,
+    delta = 0,
+    violation_pattern = violation_pattern,
+    dots = dots
+  )
+  args$.prepare_only <- TRUE
+  args$.prepare_path_cache <- TRUE
+  do.call(.spliv_impl, args)
+}
+
+.fit_for_sensitivity_delta <- function(formula, data, method, delta, violation_pattern, dots,
+                                       prepared = NULL) {
+  args <- .sensitivity_path_call_args(
+    formula = formula,
+    data = data,
+    method = method,
+    delta = delta,
+    violation_pattern = violation_pattern,
+    dots = dots
+  )
+  if (!is.null(prepared)) {
+    args$.prepared <- prepared
+  }
+  do.call(.spliv_impl, args)
 }
 
 .extract_interval_column <- function(estimates, names_to_try) {
@@ -607,6 +637,20 @@ spliv_sensitivity_path <- function(formula,
   dots <- list(...)
   .check_sensitivity_path_dots(dots)
 
+  prepared <- tryCatch(
+    .prepare_sensitivity_path_design(
+      formula = formula,
+      data = data,
+      method = method,
+      violation_pattern = violation_pattern,
+      dots = dots
+    ),
+    error = function(e) e
+  )
+  if (inherits(prepared, "error")) {
+    stop("Failed to fit the baseline sensitivity model at delta = 0: ", conditionMessage(prepared), call. = FALSE)
+  }
+
   baseline_fit <- tryCatch(
     .fit_for_sensitivity_delta(
       formula = formula,
@@ -614,7 +658,8 @@ spliv_sensitivity_path <- function(formula,
       method = method,
       delta = 0,
       violation_pattern = violation_pattern,
-      dots = dots
+      dots = dots,
+      prepared = prepared
     ),
     error = function(e) e
   )
@@ -638,7 +683,8 @@ spliv_sensitivity_path <- function(formula,
           method = method,
           delta = delta_i,
           violation_pattern = violation_pattern,
-          dots = dots
+          dots = dots,
+          prepared = prepared
         ),
         error = function(e) e
       )
